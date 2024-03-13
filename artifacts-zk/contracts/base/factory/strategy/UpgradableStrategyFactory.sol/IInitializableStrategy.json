@@ -1,0 +1,30 @@
+{
+  "_format": "hh-zksolc-artifact-1",
+  "contractName": "IInitializableStrategy",
+  "sourceName": "contracts/base/factory/strategy/UpgradableStrategyFactory.sol",
+  "abi": [
+    {
+      "inputs": [
+        {
+          "internalType": "address",
+          "name": "_storage",
+          "type": "address"
+        },
+        {
+          "internalType": "address",
+          "name": "_vault",
+          "type": "address"
+        }
+      ],
+      "name": "initializeStrategy",
+      "outputs": [],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    }
+  ],
+  "bytecode": "0x",
+  "deployedBytecode": "0x",
+  "linkReferences": {},
+  "deployedLinkReferences": {},
+  "factoryDeps": {}
+}

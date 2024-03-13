@@ -1,0 +1,3113 @@
+{
+  "_format": "hh-sol-cache-2",
+  "files": {
+    "/Users/jaspers13/Documents/Harvest/harvest-strategy-zksync/contracts/base/Controller.sol": {
+      "lastModificationDate": 1681563558163,
+      "contentHash": "4a18021f8a76d4b8e989e90efd75d420",
+      "sourceName": "contracts/base/Controller.sol",
+      "solcConfig": {
+        "version": "0.6.12",
+        "settings": {
+          "optimizer": {
+            "enabled": true,
+            "mode": "3"
+          },
+          "outputSelection": {
+            "*": {
+              "*": [
+                "abi",
+                "evm.methodIdentifiers",
+                "metadata"
+              ],
+              "": [
+                "ast"
+              ]
+            }
+          }
+        },
+        "zksolc": {
+          "version": "1.3.8",
+          "compilerSource": "binary",
+          "settings": {
+            "optimizer": {
+              "enabled": true,
+              "mode": "3"
+            },
+            "compilerPath": "",
+            "experimental": {}
+          }
+        }
+      },
+      "imports": [
+        "@openzeppelin/contracts/utils/Address.sol",
+        "@openzeppelin/contracts/math/SafeMath.sol",
+        "@openzeppelin/contracts/token/ERC20/SafeERC20.sol",
+        "@openzeppelin/contracts/token/ERC20/IERC20.sol",
+        "./inheritance/Governable.sol",
+        "./interface/IController.sol",
+        "./interface/IStrategy.sol",
+        "./interface/IVault.sol",
+        "./RewardForwarder.sol"
+      ],
+      "versionPragmas": [
+        "0.6.12"
+      ],
+      "artifacts": [
+        "Controller"
+      ]
+    },
+    "/Users/jaspers13/Documents/Harvest/harvest-strategy-zksync/contracts/base/interface/IController.sol": {
+      "lastModificationDate": 1681563596807,
+      "contentHash": "f2d078bd6137d5acbd3ad5edca531a65",
+      "sourceName": "contracts/base/interface/IController.sol",
+      "solcConfig": {
+        "version": "0.6.12",
+        "settings": {
+          "optimizer": {
+            "enabled": true,
+            "mode": "3"
+          },
+          "outputSelection": {
+            "*": {
+              "*": [
+                "abi",
+                "evm.methodIdentifiers",
+                "metadata"
+              ],
+              "": [
+                "ast"
+              ]
+            }
+          }
+        },
+        "zksolc": {
+          "version": "1.3.8",
+          "compilerSource": "binary",
+          "settings": {
+            "optimizer": {
+              "enabled": true,
+              "mode": "3"
+            },
+            "compilerPath": "",
+            "experimental": {}
+          }
+        }
+      },
+      "imports": [],
+      "versionPragmas": [
+        "0.6.12"
+      ],
+      "artifacts": [
+        "IController"
+      ]
+    },
+    "/Users/jaspers13/Documents/Harvest/harvest-strategy-zksync/contracts/base/inheritance/Governable.sol": {
+      "lastModificationDate": 1681563558105,
+      "contentHash": "1ff26667dd2554196ad3673789f793cb",
+      "sourceName": "contracts/base/inheritance/Governable.sol",
+      "solcConfig": {
+        "version": "0.6.12",
+        "settings": {
+          "optimizer": {
+            "enabled": true,
+            "mode": "3"
+          },
+          "outputSelection": {
+            "*": {
+              "*": [
+                "abi",
+                "evm.methodIdentifiers",
+                "metadata"
+              ],
+              "": [
+                "ast"
+              ]
+            }
+          }
+        },
+        "zksolc": {
+          "version": "1.3.8",
+          "compilerSource": "binary",
+          "settings": {
+            "optimizer": {
+              "enabled": true,
+              "mode": "3"
+            },
+            "compilerPath": "",
+            "experimental": {}
+          }
+        }
+      },
+      "imports": [
+        "./Storage.sol"
+      ],
+      "versionPragmas": [
+        "0.6.12"
+      ],
+      "artifacts": [
+        "Governable"
+      ]
+    },
+    "/Users/jaspers13/Documents/Harvest/harvest-strategy-zksync/contracts/base/interface/IStrategy.sol": {
+      "lastModificationDate": 1681563596820,
+      "contentHash": "ee41e7e7eae9177afea6a972c134b992",
+      "sourceName": "contracts/base/interface/IStrategy.sol",
+      "solcConfig": {
+        "version": "0.6.12",
+        "settings": {
+          "optimizer": {
+            "enabled": true,
+            "mode": "3"
+          },
+          "outputSelection": {
+            "*": {
+              "*": [
+                "abi",
+                "evm.methodIdentifiers",
+                "metadata"
+              ],
+              "": [
+                "ast"
+              ]
+            }
+          }
+        },
+        "zksolc": {
+          "version": "1.3.8",
+          "compilerSource": "binary",
+          "settings": {
+            "optimizer": {
+              "enabled": true,
+              "mode": "3"
+            },
+            "compilerPath": "",
+            "experimental": {}
+          }
+        }
+      },
+      "imports": [],
+      "versionPragmas": [
+        "0.6.12"
+      ],
+      "artifacts": [
+        "IStrategy"
+      ]
+    },
+    "/Users/jaspers13/Documents/Harvest/harvest-strategy-zksync/contracts/base/interface/IVault.sol": {
+      "lastModificationDate": 1681563596824,
+      "contentHash": "c8f5cbd319523aca7bf586c2a05f60d4",
+      "sourceName": "contracts/base/interface/IVault.sol",
+      "solcConfig": {
+        "version": "0.6.12",
+        "settings": {
+          "optimizer": {
+            "enabled": true,
+            "mode": "3"
+          },
+          "outputSelection": {
+            "*": {
+              "*": [
+                "abi",
+                "evm.methodIdentifiers",
+                "metadata"
+              ],
+              "": [
+                "ast"
+              ]
+            }
+          }
+        },
+        "zksolc": {
+          "version": "1.3.8",
+          "compilerSource": "binary",
+          "settings": {
+            "optimizer": {
+              "enabled": true,
+              "mode": "3"
+            },
+            "compilerPath": "",
+            "experimental": {}
+          }
+        }
+      },
+      "imports": [],
+      "versionPragmas": [
+        "0.6.12"
+      ],
+      "artifacts": [
+        "IVault"
+      ]
+    },
+    "/Users/jaspers13/Documents/Harvest/harvest-strategy-zksync/contracts/base/RewardForwarder.sol": {
+      "lastModificationDate": 1681563558216,
+      "contentHash": "b9596f0684a3d49f0f3e133bb4f6cfac",
+      "sourceName": "contracts/base/RewardForwarder.sol",
+      "solcConfig": {
+        "version": "0.6.12",
+        "settings": {
+          "optimizer": {
+            "enabled": true,
+            "mode": "3"
+          },
+          "outputSelection": {
+            "*": {
+              "*": [
+                "abi",
+                "evm.methodIdentifiers",
+                "metadata"
+              ],
+              "": [
+                "ast"
+              ]
+            }
+          }
+        },
+        "zksolc": {
+          "version": "1.3.8",
+          "compilerSource": "binary",
+          "settings": {
+            "optimizer": {
+              "enabled": true,
+              "mode": "3"
+            },
+            "compilerPath": "",
+            "experimental": {}
+          }
+        }
+      },
+      "imports": [
+        "@openzeppelin/contracts/math/SafeMath.sol",
+        "@openzeppelin/contracts/token/ERC20/SafeERC20.sol",
+        "@openzeppelin/contracts/token/ERC20/IERC20.sol",
+        "./inheritance/Governable.sol",
+        "./interface/IController.sol",
+        "./interface/IRewardForwarder.sol",
+        "./interface/IProfitSharingReceiver.sol",
+        "./interface/IStrategy.sol",
+        "./interface/IUniversalLiquidatorV1.sol",
+        "./inheritance/Controllable.sol"
+      ],
+      "versionPragmas": [
+        "0.6.12"
+      ],
+      "artifacts": [
+        "RewardForwarder"
+      ]
+    },
+    "/Users/jaspers13/Documents/Harvest/harvest-strategy-zksync/node_modules/@openzeppelin/contracts/math/SafeMath.sol": {
+      "lastModificationDate": 1681562815088,
+      "contentHash": "e03e12206057e809eb76c5f681170c32",
+      "sourceName": "@openzeppelin/contracts/math/SafeMath.sol",
+      "solcConfig": {
+        "version": "0.6.12",
+        "settings": {
+          "optimizer": {
+            "enabled": true,
+            "mode": "3"
+          },
+          "outputSelection": {
+            "*": {
+              "*": [
+                "abi",
+                "evm.methodIdentifiers",
+                "metadata"
+              ],
+              "": [
+                "ast"
+              ]
+            }
+          }
+        },
+        "zksolc": {
+          "version": "1.3.8",
+          "compilerSource": "binary",
+          "settings": {
+            "optimizer": {
+              "enabled": true,
+              "mode": "3"
+            },
+            "compilerPath": "",
+            "experimental": {}
+          }
+        }
+      },
+      "imports": [],
+      "versionPragmas": [
+        ">=0.6.0 <0.8.0"
+      ],
+      "artifacts": [
+        "SafeMath"
+      ]
+    },
+    "/Users/jaspers13/Documents/Harvest/harvest-strategy-zksync/node_modules/@openzeppelin/contracts/utils/Address.sol": {
+      "lastModificationDate": 1681562810555,
+      "contentHash": "7aa46886ff5abe7515496208a5e2ce5a",
+      "sourceName": "@openzeppelin/contracts/utils/Address.sol",
+      "solcConfig": {
+        "version": "0.6.12",
+        "settings": {
+          "optimizer": {
+            "enabled": true,
+            "mode": "3"
+          },
+          "outputSelection": {
+            "*": {
+              "*": [
+                "abi",
+                "evm.methodIdentifiers",
+                "metadata"
+              ],
+              "": [
+                "ast"
+              ]
+            }
+          }
+        },
+        "zksolc": {
+          "version": "1.3.8",
+          "compilerSource": "binary",
+          "settings": {
+            "optimizer": {
+              "enabled": true,
+              "mode": "3"
+            },
+            "compilerPath": "",
+            "experimental": {}
+          }
+        }
+      },
+      "imports": [],
+      "versionPragmas": [
+        ">=0.6.2 <0.8.0"
+      ],
+      "artifacts": [
+        "Address"
+      ]
+    },
+    "/Users/jaspers13/Documents/Harvest/harvest-strategy-zksync/node_modules/@openzeppelin/contracts/token/ERC20/IERC20.sol": {
+      "lastModificationDate": 1681562814456,
+      "contentHash": "e0a41531d159d3a32f84b7a3ecf9fabb",
+      "sourceName": "@openzeppelin/contracts/token/ERC20/IERC20.sol",
+      "solcConfig": {
+        "version": "0.6.12",
+        "settings": {
+          "optimizer": {
+            "enabled": true,
+            "mode": "3"
+          },
+          "outputSelection": {
+            "*": {
+              "*": [
+                "abi",
+                "evm.methodIdentifiers",
+                "metadata"
+              ],
+              "": [
+                "ast"
+              ]
+            }
+          }
+        },
+        "zksolc": {
+          "version": "1.3.8",
+          "compilerSource": "binary",
+          "settings": {
+            "optimizer": {
+              "enabled": true,
+              "mode": "3"
+            },
+            "compilerPath": "",
+            "experimental": {}
+          }
+        }
+      },
+      "imports": [],
+      "versionPragmas": [
+        ">=0.6.0 <0.8.0"
+      ],
+      "artifacts": [
+        "IERC20"
+      ]
+    },
+    "/Users/jaspers13/Documents/Harvest/harvest-strategy-zksync/node_modules/@openzeppelin/contracts/token/ERC20/SafeERC20.sol": {
+      "lastModificationDate": 1681562815033,
+      "contentHash": "33e22842646d746e5c4124c2fdc051aa",
+      "sourceName": "@openzeppelin/contracts/token/ERC20/SafeERC20.sol",
+      "solcConfig": {
+        "version": "0.6.12",
+        "settings": {
+          "optimizer": {
+            "enabled": true,
+            "mode": "3"
+          },
+          "outputSelection": {
+            "*": {
+              "*": [
+                "abi",
+                "evm.methodIdentifiers",
+                "metadata"
+              ],
+              "": [
+                "ast"
+              ]
+            }
+          }
+        },
+        "zksolc": {
+          "version": "1.3.8",
+          "compilerSource": "binary",
+          "settings": {
+            "optimizer": {
+              "enabled": true,
+              "mode": "3"
+            },
+            "compilerPath": "",
+            "experimental": {}
+          }
+        }
+      },
+      "imports": [
+        "./IERC20.sol",
+        "../../math/SafeMath.sol",
+        "../../utils/Address.sol"
+      ],
+      "versionPragmas": [
+        ">=0.6.0 <0.8.0"
+      ],
+      "artifacts": [
+        "SafeERC20"
+      ]
+    },
+    "/Users/jaspers13/Documents/Harvest/harvest-strategy-zksync/contracts/base/inheritance/Storage.sol": {
+      "lastModificationDate": 1681563558110,
+      "contentHash": "763be63c14966ed68d1b1222a68ccaaa",
+      "sourceName": "contracts/base/inheritance/Storage.sol",
+      "solcConfig": {
+        "version": "0.6.12",
+        "settings": {
+          "optimizer": {
+            "enabled": true,
+            "mode": "3"
+          },
+          "outputSelection": {
+            "*": {
+              "*": [
+                "abi",
+                "evm.methodIdentifiers",
+                "metadata"
+              ],
+              "": [
+                "ast"
+              ]
+            }
+          }
+        },
+        "zksolc": {
+          "version": "1.3.8",
+          "compilerSource": "binary",
+          "settings": {
+            "optimizer": {
+              "enabled": true,
+              "mode": "3"
+            },
+            "compilerPath": "",
+            "experimental": {}
+          }
+        }
+      },
+      "imports": [],
+      "versionPragmas": [
+        "0.6.12"
+      ],
+      "artifacts": [
+        "Storage"
+      ]
+    },
+    "/Users/jaspers13/Documents/Harvest/harvest-strategy-zksync/contracts/base/interface/IRewardForwarder.sol": {
+      "lastModificationDate": 1681563596816,
+      "contentHash": "8b4e3cc7291c2e38e37118ecb2da5502",
+      "sourceName": "contracts/base/interface/IRewardForwarder.sol",
+      "solcConfig": {
+        "version": "0.6.12",
+        "settings": {
+          "optimizer": {
+            "enabled": true,
+            "mode": "3"
+          },
+          "outputSelection": {
+            "*": {
+              "*": [
+                "abi",
+                "evm.methodIdentifiers",
+                "metadata"
+              ],
+              "": [
+                "ast"
+              ]
+            }
+          }
+        },
+        "zksolc": {
+          "version": "1.3.8",
+          "compilerSource": "binary",
+          "settings": {
+            "optimizer": {
+              "enabled": true,
+              "mode": "3"
+            },
+            "compilerPath": "",
+            "experimental": {}
+          }
+        }
+      },
+      "imports": [],
+      "versionPragmas": [
+        "0.6.12"
+      ],
+      "artifacts": [
+        "IRewardForwarder"
+      ]
+    },
+    "/Users/jaspers13/Documents/Harvest/harvest-strategy-zksync/contracts/base/interface/IProfitSharingReceiver.sol": {
+      "lastModificationDate": 1681563596815,
+      "contentHash": "d54b45fe98bbd18dad56c887da87c934",
+      "sourceName": "contracts/base/interface/IProfitSharingReceiver.sol",
+      "solcConfig": {
+        "version": "0.6.12",
+        "settings": {
+          "optimizer": {
+            "enabled": true,
+            "mode": "3"
+          },
+          "outputSelection": {
+            "*": {
+              "*": [
+                "abi",
+                "evm.methodIdentifiers",
+                "metadata"
+              ],
+              "": [
+                "ast"
+              ]
+            }
+          }
+        },
+        "zksolc": {
+          "version": "1.3.8",
+          "compilerSource": "binary",
+          "settings": {
+            "optimizer": {
+              "enabled": true,
+              "mode": "3"
+            },
+            "compilerPath": "",
+            "experimental": {}
+          }
+        }
+      },
+      "imports": [],
+      "versionPragmas": [
+        "0.6.12"
+      ],
+      "artifacts": [
+        "IProfitSharingReceiver"
+      ]
+    },
+    "/Users/jaspers13/Documents/Harvest/harvest-strategy-zksync/contracts/base/interface/IUniversalLiquidatorV1.sol": {
+      "lastModificationDate": 1681563596821,
+      "contentHash": "c4d94070c7926e66a1e8ceb867dcd060",
+      "sourceName": "contracts/base/interface/IUniversalLiquidatorV1.sol",
+      "solcConfig": {
+        "version": "0.6.12",
+        "settings": {
+          "optimizer": {
+            "enabled": true,
+            "mode": "3"
+          },
+          "outputSelection": {
+            "*": {
+              "*": [
+                "abi",
+                "evm.methodIdentifiers",
+                "metadata"
+              ],
+              "": [
+                "ast"
+              ]
+            }
+          }
+        },
+        "zksolc": {
+          "version": "1.3.8",
+          "compilerSource": "binary",
+          "settings": {
+            "optimizer": {
+              "enabled": true,
+              "mode": "3"
+            },
+            "compilerPath": "",
+            "experimental": {}
+          }
+        }
+      },
+      "imports": [],
+      "versionPragmas": [
+        "0.6.12"
+      ],
+      "artifacts": [
+        "IUniversalLiquidatorV1"
+      ]
+    },
+    "/Users/jaspers13/Documents/Harvest/harvest-strategy-zksync/contracts/base/inheritance/Controllable.sol": {
+      "lastModificationDate": 1681563558101,
+      "contentHash": "a37d44b4713e566fe54265d741134b20",
+      "sourceName": "contracts/base/inheritance/Controllable.sol",
+      "solcConfig": {
+        "version": "0.6.12",
+        "settings": {
+          "optimizer": {
+            "enabled": true,
+            "mode": "3"
+          },
+          "outputSelection": {
+            "*": {
+              "*": [
+                "abi",
+                "evm.methodIdentifiers",
+                "metadata"
+              ],
+              "": [
+                "ast"
+              ]
+            }
+          }
+        },
+        "zksolc": {
+          "version": "1.3.8",
+          "compilerSource": "binary",
+          "settings": {
+            "optimizer": {
+              "enabled": true,
+              "mode": "3"
+            },
+            "compilerPath": "",
+            "experimental": {}
+          }
+        }
+      },
+      "imports": [
+        "./Governable.sol"
+      ],
+      "versionPragmas": [
+        "0.6.12"
+      ],
+      "artifacts": [
+        "Controllable"
+      ]
+    },
+    "/Users/jaspers13/Documents/Harvest/harvest-strategy-zksync/node_modules/@openzeppelin/contracts/token/ERC20/ERC20.sol": {
+      "lastModificationDate": 1681562813123,
+      "contentHash": "8065b340476f61365c076897199425f1",
+      "sourceName": "@openzeppelin/contracts/token/ERC20/ERC20.sol",
+      "solcConfig": {
+        "version": "0.6.12",
+        "settings": {
+          "optimizer": {
+            "enabled": true,
+            "mode": "3"
+          },
+          "outputSelection": {
+            "*": {
+              "*": [
+                "abi",
+                "evm.methodIdentifiers",
+                "metadata"
+              ],
+              "": [
+                "ast"
+              ]
+            }
+          }
+        },
+        "zksolc": {
+          "version": "1.3.8",
+          "compilerSource": "binary",
+          "settings": {
+            "optimizer": {
+              "enabled": true,
+              "mode": "3"
+            },
+            "compilerPath": "",
+            "experimental": {}
+          }
+        }
+      },
+      "imports": [
+        "../../utils/Context.sol",
+        "./IERC20.sol",
+        "../../math/SafeMath.sol"
+      ],
+      "versionPragmas": [
+        ">=0.6.0 <0.8.0"
+      ],
+      "artifacts": [
+        "ERC20"
+      ]
+    },
+    "/Users/jaspers13/Documents/Harvest/harvest-strategy-zksync/node_modules/@openzeppelin/contracts/utils/Context.sol": {
+      "lastModificationDate": 1681562811651,
+      "contentHash": "2adbd82f6d055a4751566d4671512b03",
+      "sourceName": "@openzeppelin/contracts/utils/Context.sol",
+      "solcConfig": {
+        "version": "0.6.12",
+        "settings": {
+          "optimizer": {
+            "enabled": true,
+            "mode": "3"
+          },
+          "outputSelection": {
+            "*": {
+              "*": [
+                "abi",
+                "evm.methodIdentifiers",
+                "metadata"
+              ],
+              "": [
+                "ast"
+              ]
+            }
+          }
+        },
+        "zksolc": {
+          "version": "1.3.8",
+          "compilerSource": "binary",
+          "settings": {
+            "optimizer": {
+              "enabled": true,
+              "mode": "3"
+            },
+            "compilerPath": "",
+            "experimental": {}
+          }
+        }
+      },
+      "imports": [],
+      "versionPragmas": [
+        ">=0.6.0 <0.8.0"
+      ],
+      "artifacts": [
+        "Context"
+      ]
+    },
+    "/Users/jaspers13/Documents/Harvest/harvest-strategy-zksync/node_modules/@openzeppelin/contracts/access/Ownable.sol": {
+      "lastModificationDate": 1681562814787,
+      "contentHash": "6748815a5b45c4aeeda56819f41190e0",
+      "sourceName": "@openzeppelin/contracts/access/Ownable.sol",
+      "solcConfig": {
+        "version": "0.6.12",
+        "settings": {
+          "optimizer": {
+            "enabled": true,
+            "mode": "3"
+          },
+          "outputSelection": {
+            "*": {
+              "*": [
+                "abi",
+                "evm.methodIdentifiers",
+                "metadata"
+              ],
+              "": [
+                "ast"
+              ]
+            }
+          }
+        },
+        "zksolc": {
+          "version": "1.3.8",
+          "compilerSource": "binary",
+          "settings": {
+            "optimizer": {
+              "enabled": true,
+              "mode": "3"
+            },
+            "compilerPath": "",
+            "experimental": {}
+          }
+        }
+      },
+      "imports": [
+        "../utils/Context.sol"
+      ],
+      "versionPragmas": [
+        ">=0.6.0 <0.8.0"
+      ],
+      "artifacts": [
+        "Ownable"
+      ]
+    },
+    "/Users/jaspers13/Documents/Harvest/harvest-strategy-zksync/contracts/base/inheritance/OwnableWhitelist.sol": {
+      "lastModificationDate": 1681563558109,
+      "contentHash": "985bf269c453fdfde8ba67ae40e04823",
+      "sourceName": "contracts/base/inheritance/OwnableWhitelist.sol",
+      "solcConfig": {
+        "version": "0.6.12",
+        "settings": {
+          "optimizer": {
+            "enabled": true,
+            "mode": "3"
+          },
+          "outputSelection": {
+            "*": {
+              "*": [
+                "abi",
+                "evm.methodIdentifiers",
+                "metadata"
+              ],
+              "": [
+                "ast"
+              ]
+            }
+          }
+        },
+        "zksolc": {
+          "version": "1.3.8",
+          "compilerSource": "binary",
+          "settings": {
+            "optimizer": {
+              "enabled": true,
+              "mode": "3"
+            },
+            "compilerPath": "",
+            "experimental": {}
+          }
+        }
+      },
+      "imports": [
+        "@openzeppelin/contracts/access/Ownable.sol"
+      ],
+      "versionPragmas": [
+        "0.6.12"
+      ],
+      "artifacts": [
+        "OwnableWhitelist"
+      ]
+    },
+    "/Users/jaspers13/Documents/Harvest/harvest-strategy-zksync/contracts/base/factory/vault/RegularVaultFactory.sol": {
+      "lastModificationDate": 1689871857979,
+      "contentHash": "319ae329029c83048e5aff3bb27813a4",
+      "sourceName": "contracts/base/factory/vault/RegularVaultFactory.sol",
+      "solcConfig": {
+        "version": "0.6.12",
+        "settings": {
+          "optimizer": {
+            "enabled": true,
+            "mode": "3"
+          },
+          "outputSelection": {
+            "*": {
+              "*": [
+                "abi",
+                "evm.methodIdentifiers",
+                "metadata"
+              ],
+              "": [
+                "ast"
+              ]
+            }
+          }
+        },
+        "zksolc": {
+          "version": "1.3.8",
+          "compilerSource": "binary",
+          "settings": {
+            "optimizer": {
+              "enabled": true,
+              "mode": "3"
+            },
+            "compilerPath": "",
+            "experimental": {}
+          }
+        }
+      },
+      "imports": [
+        "../../VaultProxy.sol",
+        "../../interface/IVault.sol",
+        "../interface/IVaultFactory.sol",
+        "../../inheritance/OwnableWhitelist.sol"
+      ],
+      "versionPragmas": [
+        "0.6.12"
+      ],
+      "artifacts": [
+        "RegularVaultFactory"
+      ]
+    },
+    "/Users/jaspers13/Documents/Harvest/harvest-strategy-zksync/contracts/base/VaultProxy.sol": {
+      "lastModificationDate": 1681563558232,
+      "contentHash": "a35a650274988b8c32b663f9af58cc95",
+      "sourceName": "contracts/base/VaultProxy.sol",
+      "solcConfig": {
+        "version": "0.6.12",
+        "settings": {
+          "optimizer": {
+            "enabled": true,
+            "mode": "3"
+          },
+          "outputSelection": {
+            "*": {
+              "*": [
+                "abi",
+                "evm.methodIdentifiers",
+                "metadata"
+              ],
+              "": [
+                "ast"
+              ]
+            }
+          }
+        },
+        "zksolc": {
+          "version": "1.3.8",
+          "compilerSource": "binary",
+          "settings": {
+            "optimizer": {
+              "enabled": true,
+              "mode": "3"
+            },
+            "compilerPath": "",
+            "experimental": {}
+          }
+        }
+      },
+      "imports": [
+        "./interface/IUpgradeSource.sol",
+        "./upgradability/BaseUpgradeabilityProxy.sol"
+      ],
+      "versionPragmas": [
+        "0.6.12"
+      ],
+      "artifacts": [
+        "VaultProxy"
+      ]
+    },
+    "/Users/jaspers13/Documents/Harvest/harvest-strategy-zksync/contracts/base/factory/interface/IVaultFactory.sol": {
+      "lastModificationDate": 1681563558045,
+      "contentHash": "5ccfde7578d92864af4b5fd8412e8a43",
+      "sourceName": "contracts/base/factory/interface/IVaultFactory.sol",
+      "solcConfig": {
+        "version": "0.6.12",
+        "settings": {
+          "optimizer": {
+            "enabled": true,
+            "mode": "3"
+          },
+          "outputSelection": {
+            "*": {
+              "*": [
+                "abi",
+                "evm.methodIdentifiers",
+                "metadata"
+              ],
+              "": [
+                "ast"
+              ]
+            }
+          }
+        },
+        "zksolc": {
+          "version": "1.3.8",
+          "compilerSource": "binary",
+          "settings": {
+            "optimizer": {
+              "enabled": true,
+              "mode": "3"
+            },
+            "compilerPath": "",
+            "experimental": {}
+          }
+        }
+      },
+      "imports": [],
+      "versionPragmas": [
+        "0.6.12"
+      ],
+      "artifacts": [
+        "IVaultFactory"
+      ]
+    },
+    "/Users/jaspers13/Documents/Harvest/harvest-strategy-zksync/contracts/base/upgradability/BaseUpgradeabilityProxy.sol": {
+      "lastModificationDate": 1681563558136,
+      "contentHash": "5b62fe6ee2488f92fac7a2573c795184",
+      "sourceName": "contracts/base/upgradability/BaseUpgradeabilityProxy.sol",
+      "solcConfig": {
+        "version": "0.6.12",
+        "settings": {
+          "optimizer": {
+            "enabled": true,
+            "mode": "3"
+          },
+          "outputSelection": {
+            "*": {
+              "*": [
+                "abi",
+                "evm.methodIdentifiers",
+                "metadata"
+              ],
+              "": [
+                "ast"
+              ]
+            }
+          }
+        },
+        "zksolc": {
+          "version": "1.3.8",
+          "compilerSource": "binary",
+          "settings": {
+            "optimizer": {
+              "enabled": true,
+              "mode": "3"
+            },
+            "compilerPath": "",
+            "experimental": {}
+          }
+        }
+      },
+      "imports": [
+        "@openzeppelin/contracts/proxy/Proxy.sol",
+        "@openzeppelin/contracts/utils/Address.sol"
+      ],
+      "versionPragmas": [
+        "0.6.12"
+      ],
+      "artifacts": [
+        "BaseUpgradeabilityProxy"
+      ]
+    },
+    "/Users/jaspers13/Documents/Harvest/harvest-strategy-zksync/contracts/base/interface/IUpgradeSource.sol": {
+      "lastModificationDate": 1681563596824,
+      "contentHash": "a844d04500e7c18e11c6a0ed140bfcfe",
+      "sourceName": "contracts/base/interface/IUpgradeSource.sol",
+      "solcConfig": {
+        "version": "0.6.12",
+        "settings": {
+          "optimizer": {
+            "enabled": true,
+            "mode": "3"
+          },
+          "outputSelection": {
+            "*": {
+              "*": [
+                "abi",
+                "evm.methodIdentifiers",
+                "metadata"
+              ],
+              "": [
+                "ast"
+              ]
+            }
+          }
+        },
+        "zksolc": {
+          "version": "1.3.8",
+          "compilerSource": "binary",
+          "settings": {
+            "optimizer": {
+              "enabled": true,
+              "mode": "3"
+            },
+            "compilerPath": "",
+            "experimental": {}
+          }
+        }
+      },
+      "imports": [],
+      "versionPragmas": [
+        "0.6.12"
+      ],
+      "artifacts": [
+        "IUpgradeSource"
+      ]
+    },
+    "/Users/jaspers13/Documents/Harvest/harvest-strategy-zksync/node_modules/@openzeppelin/contracts/proxy/Proxy.sol": {
+      "lastModificationDate": 1681562814893,
+      "contentHash": "52841a5095656ecbf7bc86cd6c114699",
+      "sourceName": "@openzeppelin/contracts/proxy/Proxy.sol",
+      "solcConfig": {
+        "version": "0.6.12",
+        "settings": {
+          "optimizer": {
+            "enabled": true,
+            "mode": "3"
+          },
+          "outputSelection": {
+            "*": {
+              "*": [
+                "abi",
+                "evm.methodIdentifiers",
+                "metadata"
+              ],
+              "": [
+                "ast"
+              ]
+            }
+          }
+        },
+        "zksolc": {
+          "version": "1.3.8",
+          "compilerSource": "binary",
+          "settings": {
+            "optimizer": {
+              "enabled": true,
+              "mode": "3"
+            },
+            "compilerPath": "",
+            "experimental": {}
+          }
+        }
+      },
+      "imports": [],
+      "versionPragmas": [
+        ">=0.6.0 <0.8.0"
+      ],
+      "artifacts": [
+        "Proxy"
+      ]
+    },
+    "/Users/jaspers13/Documents/Harvest/harvest-strategy-zksync/contracts/base/noop/NoopStrategyUpgradeable.sol": {
+      "lastModificationDate": 1681563558126,
+      "contentHash": "f9b974e3936a8fa693c8a4046a3b0a3c",
+      "sourceName": "contracts/base/noop/NoopStrategyUpgradeable.sol",
+      "solcConfig": {
+        "version": "0.6.12",
+        "settings": {
+          "optimizer": {
+            "enabled": true,
+            "mode": "3"
+          },
+          "outputSelection": {
+            "*": {
+              "*": [
+                "abi",
+                "evm.methodIdentifiers",
+                "metadata"
+              ],
+              "": [
+                "ast"
+              ]
+            }
+          }
+        },
+        "zksolc": {
+          "version": "1.3.8",
+          "compilerSource": "binary",
+          "settings": {
+            "optimizer": {
+              "enabled": true,
+              "mode": "3"
+            },
+            "compilerPath": "",
+            "experimental": {}
+          }
+        }
+      },
+      "imports": [
+        "@openzeppelin/contracts/math/Math.sol",
+        "@openzeppelin/contracts/math/SafeMath.sol",
+        "@openzeppelin/contracts/token/ERC20/SafeERC20.sol",
+        "../interface/IVault.sol",
+        "../upgradability/BaseUpgradeableStrategy.sol"
+      ],
+      "versionPragmas": [
+        "0.6.12"
+      ],
+      "artifacts": [
+        "NoopStrategyUpgradeable"
+      ]
+    },
+    "/Users/jaspers13/Documents/Harvest/harvest-strategy-zksync/contracts/base/upgradability/BaseUpgradeableStrategy.sol": {
+      "lastModificationDate": 1681563558137,
+      "contentHash": "7ed2880ab8ab705054897d03a7a7ba12",
+      "sourceName": "contracts/base/upgradability/BaseUpgradeableStrategy.sol",
+      "solcConfig": {
+        "version": "0.6.12",
+        "settings": {
+          "optimizer": {
+            "enabled": true,
+            "mode": "3"
+          },
+          "outputSelection": {
+            "*": {
+              "*": [
+                "abi",
+                "evm.methodIdentifiers",
+                "metadata"
+              ],
+              "": [
+                "ast"
+              ]
+            }
+          }
+        },
+        "zksolc": {
+          "version": "1.3.8",
+          "compilerSource": "binary",
+          "settings": {
+            "optimizer": {
+              "enabled": true,
+              "mode": "3"
+            },
+            "compilerPath": "",
+            "experimental": {}
+          }
+        }
+      },
+      "imports": [
+        "@openzeppelin/contracts-upgradeable/proxy/Initializable.sol",
+        "./BaseUpgradeableStrategyStorage.sol",
+        "../inheritance/ControllableInit.sol",
+        "../interface/IController.sol",
+        "../interface/IRewardForwarder.sol",
+        "@openzeppelin/contracts/token/ERC20/IERC20.sol",
+        "@openzeppelin/contracts/math/SafeMath.sol",
+        "@openzeppelin/contracts/token/ERC20/SafeERC20.sol"
+      ],
+      "versionPragmas": [
+        "0.6.12"
+      ],
+      "artifacts": [
+        "BaseUpgradeableStrategy"
+      ]
+    },
+    "/Users/jaspers13/Documents/Harvest/harvest-strategy-zksync/node_modules/@openzeppelin/contracts/math/Math.sol": {
+      "lastModificationDate": 1681562814689,
+      "contentHash": "e5c844515b04deabacef7eb872abc384",
+      "sourceName": "@openzeppelin/contracts/math/Math.sol",
+      "solcConfig": {
+        "version": "0.6.12",
+        "settings": {
+          "optimizer": {
+            "enabled": true,
+            "mode": "3"
+          },
+          "outputSelection": {
+            "*": {
+              "*": [
+                "abi",
+                "evm.methodIdentifiers",
+                "metadata"
+              ],
+              "": [
+                "ast"
+              ]
+            }
+          }
+        },
+        "zksolc": {
+          "version": "1.3.8",
+          "compilerSource": "binary",
+          "settings": {
+            "optimizer": {
+              "enabled": true,
+              "mode": "3"
+            },
+            "compilerPath": "",
+            "experimental": {}
+          }
+        }
+      },
+      "imports": [],
+      "versionPragmas": [
+        ">=0.6.0 <0.8.0"
+      ],
+      "artifacts": [
+        "Math"
+      ]
+    },
+    "/Users/jaspers13/Documents/Harvest/harvest-strategy-zksync/contracts/base/upgradability/BaseUpgradeableStrategyStorage.sol": {
+      "lastModificationDate": 1681563558138,
+      "contentHash": "337d06a73bc942dcff188db2c049dc06",
+      "sourceName": "contracts/base/upgradability/BaseUpgradeableStrategyStorage.sol",
+      "solcConfig": {
+        "version": "0.6.12",
+        "settings": {
+          "optimizer": {
+            "enabled": true,
+            "mode": "3"
+          },
+          "outputSelection": {
+            "*": {
+              "*": [
+                "abi",
+                "evm.methodIdentifiers",
+                "metadata"
+              ],
+              "": [
+                "ast"
+              ]
+            }
+          }
+        },
+        "zksolc": {
+          "version": "1.3.8",
+          "compilerSource": "binary",
+          "settings": {
+            "optimizer": {
+              "enabled": true,
+              "mode": "3"
+            },
+            "compilerPath": "",
+            "experimental": {}
+          }
+        }
+      },
+      "imports": [
+        "../interface/IController.sol",
+        "../inheritance/ControllableInit.sol"
+      ],
+      "versionPragmas": [
+        "0.6.12"
+      ],
+      "artifacts": [
+        "BaseUpgradeableStrategyStorage"
+      ]
+    },
+    "/Users/jaspers13/Documents/Harvest/harvest-strategy-zksync/contracts/base/inheritance/ControllableInit.sol": {
+      "lastModificationDate": 1681563558103,
+      "contentHash": "2f7eb5a74e89b1136bd7827af3d56031",
+      "sourceName": "contracts/base/inheritance/ControllableInit.sol",
+      "solcConfig": {
+        "version": "0.6.12",
+        "settings": {
+          "optimizer": {
+            "enabled": true,
+            "mode": "3"
+          },
+          "outputSelection": {
+            "*": {
+              "*": [
+                "abi",
+                "evm.methodIdentifiers",
+                "metadata"
+              ],
+              "": [
+                "ast"
+              ]
+            }
+          }
+        },
+        "zksolc": {
+          "version": "1.3.8",
+          "compilerSource": "binary",
+          "settings": {
+            "optimizer": {
+              "enabled": true,
+              "mode": "3"
+            },
+            "compilerPath": "",
+            "experimental": {}
+          }
+        }
+      },
+      "imports": [
+        "./GovernableInit.sol"
+      ],
+      "versionPragmas": [
+        "0.6.12"
+      ],
+      "artifacts": [
+        "ControllableInit"
+      ]
+    },
+    "/Users/jaspers13/Documents/Harvest/harvest-strategy-zksync/node_modules/@openzeppelin/contracts-upgradeable/proxy/Initializable.sol": {
+      "lastModificationDate": 1681562814192,
+      "contentHash": "71b3ac8d4da61bb6c6708c12f56e3c1f",
+      "sourceName": "@openzeppelin/contracts-upgradeable/proxy/Initializable.sol",
+      "solcConfig": {
+        "version": "0.6.12",
+        "settings": {
+          "optimizer": {
+            "enabled": true,
+            "mode": "3"
+          },
+          "outputSelection": {
+            "*": {
+              "*": [
+                "abi",
+                "evm.methodIdentifiers",
+                "metadata"
+              ],
+              "": [
+                "ast"
+              ]
+            }
+          }
+        },
+        "zksolc": {
+          "version": "1.3.8",
+          "compilerSource": "binary",
+          "settings": {
+            "optimizer": {
+              "enabled": true,
+              "mode": "3"
+            },
+            "compilerPath": "",
+            "experimental": {}
+          }
+        }
+      },
+      "imports": [
+        "../utils/AddressUpgradeable.sol"
+      ],
+      "versionPragmas": [
+        ">=0.4.24 <0.8.0"
+      ],
+      "artifacts": [
+        "Initializable"
+      ]
+    },
+    "/Users/jaspers13/Documents/Harvest/harvest-strategy-zksync/contracts/base/inheritance/GovernableInit.sol": {
+      "lastModificationDate": 1681563558106,
+      "contentHash": "f0ab8f6567267cf5266f6d550214cadc",
+      "sourceName": "contracts/base/inheritance/GovernableInit.sol",
+      "solcConfig": {
+        "version": "0.6.12",
+        "settings": {
+          "optimizer": {
+            "enabled": true,
+            "mode": "3"
+          },
+          "outputSelection": {
+            "*": {
+              "*": [
+                "abi",
+                "evm.methodIdentifiers",
+                "metadata"
+              ],
+              "": [
+                "ast"
+              ]
+            }
+          }
+        },
+        "zksolc": {
+          "version": "1.3.8",
+          "compilerSource": "binary",
+          "settings": {
+            "optimizer": {
+              "enabled": true,
+              "mode": "3"
+            },
+            "compilerPath": "",
+            "experimental": {}
+          }
+        }
+      },
+      "imports": [
+        "../upgradability/ReentrancyGuardUpgradeable.sol",
+        "./Storage.sol"
+      ],
+      "versionPragmas": [
+        "0.6.12"
+      ],
+      "artifacts": [
+        "GovernableInit"
+      ]
+    },
+    "/Users/jaspers13/Documents/Harvest/harvest-strategy-zksync/contracts/base/upgradability/ReentrancyGuardUpgradeable.sol": {
+      "lastModificationDate": 1681563558143,
+      "contentHash": "3c411ce59b6630711c72eb463521cfb1",
+      "sourceName": "contracts/base/upgradability/ReentrancyGuardUpgradeable.sol",
+      "solcConfig": {
+        "version": "0.6.12",
+        "settings": {
+          "optimizer": {
+            "enabled": true,
+            "mode": "3"
+          },
+          "outputSelection": {
+            "*": {
+              "*": [
+                "abi",
+                "evm.methodIdentifiers",
+                "metadata"
+              ],
+              "": [
+                "ast"
+              ]
+            }
+          }
+        },
+        "zksolc": {
+          "version": "1.3.8",
+          "compilerSource": "binary",
+          "settings": {
+            "optimizer": {
+              "enabled": true,
+              "mode": "3"
+            },
+            "compilerPath": "",
+            "experimental": {}
+          }
+        }
+      },
+      "imports": [
+        "@openzeppelin/contracts-upgradeable/proxy/Initializable.sol"
+      ],
+      "versionPragmas": [
+        "0.6.12"
+      ],
+      "artifacts": [
+        "ReentrancyGuardUpgradeable"
+      ]
+    },
+    "/Users/jaspers13/Documents/Harvest/harvest-strategy-zksync/node_modules/@openzeppelin/contracts-upgradeable/utils/AddressUpgradeable.sol": {
+      "lastModificationDate": 1681562810006,
+      "contentHash": "aa72beb3bf14f8394b4a8a292d66589c",
+      "sourceName": "@openzeppelin/contracts-upgradeable/utils/AddressUpgradeable.sol",
+      "solcConfig": {
+        "version": "0.6.12",
+        "settings": {
+          "optimizer": {
+            "enabled": true,
+            "mode": "3"
+          },
+          "outputSelection": {
+            "*": {
+              "*": [
+                "abi",
+                "evm.methodIdentifiers",
+                "metadata"
+              ],
+              "": [
+                "ast"
+              ]
+            }
+          }
+        },
+        "zksolc": {
+          "version": "1.3.8",
+          "compilerSource": "binary",
+          "settings": {
+            "optimizer": {
+              "enabled": true,
+              "mode": "3"
+            },
+            "compilerPath": "",
+            "experimental": {}
+          }
+        }
+      },
+      "imports": [],
+      "versionPragmas": [
+        ">=0.6.2 <0.8.0"
+      ],
+      "artifacts": [
+        "AddressUpgradeable"
+      ]
+    },
+    "/Users/jaspers13/Documents/Harvest/harvest-strategy-zksync/contracts/base/PotPool.sol": {
+      "lastModificationDate": 1681563558188,
+      "contentHash": "a29fcd7323cdd548df1389de294ef391",
+      "sourceName": "contracts/base/PotPool.sol",
+      "solcConfig": {
+        "version": "0.6.12",
+        "settings": {
+          "optimizer": {
+            "enabled": true,
+            "mode": "3"
+          },
+          "outputSelection": {
+            "*": {
+              "*": [
+                "abi",
+                "evm.methodIdentifiers",
+                "metadata"
+              ],
+              "": [
+                "ast"
+              ]
+            }
+          }
+        },
+        "zksolc": {
+          "version": "1.3.8",
+          "compilerSource": "binary",
+          "settings": {
+            "optimizer": {
+              "enabled": true,
+              "mode": "3"
+            },
+            "compilerPath": "",
+            "experimental": {}
+          }
+        }
+      },
+      "imports": [
+        "./inheritance/Controllable.sol",
+        "./interface/IController.sol",
+        "@openzeppelin/contracts/token/ERC20/IERC20.sol",
+        "@openzeppelin/contracts/token/ERC20/ERC20.sol",
+        "@openzeppelin/contracts/token/ERC20/SafeERC20.sol",
+        "@openzeppelin/contracts/math/SafeMath.sol",
+        "@openzeppelin/contracts/math/Math.sol",
+        "@openzeppelin/contracts/utils/Address.sol",
+        "@openzeppelin/contracts/access/Ownable.sol"
+      ],
+      "versionPragmas": [
+        "0.6.12"
+      ],
+      "artifacts": [
+        "IRewardDistributionRecipient",
+        "PotPool"
+      ]
+    },
+    "/Users/jaspers13/Documents/Harvest/harvest-strategy-zksync/contracts/base/incentives/NotifyHelperStateful.sol": {
+      "lastModificationDate": 1681563558071,
+      "contentHash": "3221ff9966dc1db4f9c2db21e3cfc989",
+      "sourceName": "contracts/base/incentives/NotifyHelperStateful.sol",
+      "solcConfig": {
+        "version": "0.6.12",
+        "settings": {
+          "optimizer": {
+            "enabled": true,
+            "mode": "3"
+          },
+          "outputSelection": {
+            "*": {
+              "*": [
+                "abi",
+                "evm.methodIdentifiers",
+                "metadata"
+              ],
+              "": [
+                "ast"
+              ]
+            }
+          }
+        },
+        "zksolc": {
+          "version": "1.3.8",
+          "compilerSource": "binary",
+          "settings": {
+            "optimizer": {
+              "enabled": true,
+              "mode": "3"
+            },
+            "compilerPath": "",
+            "experimental": {}
+          }
+        }
+      },
+      "imports": [
+        "@openzeppelin/contracts-upgradeable/math/SafeMathUpgradeable.sol",
+        "@openzeppelin/contracts-upgradeable/token/ERC20/SafeERC20Upgradeable.sol",
+        "@openzeppelin/contracts-upgradeable/token/ERC20/IERC20Upgradeable.sol",
+        "@openzeppelin/contracts-upgradeable/token/ERC20/ERC20Upgradeable.sol",
+        "../inheritance/Controllable.sol",
+        "../PotPool.sol"
+      ],
+      "versionPragmas": [
+        "0.6.12"
+      ],
+      "artifacts": [
+        "INotifyHelperAmpliFARM",
+        "INotifyHelperGeneric",
+        "NotifyHelperStateful"
+      ]
+    },
+    "/Users/jaspers13/Documents/Harvest/harvest-strategy-zksync/node_modules/@openzeppelin/contracts-upgradeable/math/SafeMathUpgradeable.sol": {
+      "lastModificationDate": 1681562814868,
+      "contentHash": "33cad0216fea16ce4baadc5603b84218",
+      "sourceName": "@openzeppelin/contracts-upgradeable/math/SafeMathUpgradeable.sol",
+      "solcConfig": {
+        "version": "0.6.12",
+        "settings": {
+          "optimizer": {
+            "enabled": true,
+            "mode": "3"
+          },
+          "outputSelection": {
+            "*": {
+              "*": [
+                "abi",
+                "evm.methodIdentifiers",
+                "metadata"
+              ],
+              "": [
+                "ast"
+              ]
+            }
+          }
+        },
+        "zksolc": {
+          "version": "1.3.8",
+          "compilerSource": "binary",
+          "settings": {
+            "optimizer": {
+              "enabled": true,
+              "mode": "3"
+            },
+            "compilerPath": "",
+            "experimental": {}
+          }
+        }
+      },
+      "imports": [],
+      "versionPragmas": [
+        ">=0.6.0 <0.8.0"
+      ],
+      "artifacts": [
+        "SafeMathUpgradeable"
+      ]
+    },
+    "/Users/jaspers13/Documents/Harvest/harvest-strategy-zksync/node_modules/@openzeppelin/contracts-upgradeable/token/ERC20/IERC20Upgradeable.sol": {
+      "lastModificationDate": 1681562814075,
+      "contentHash": "6c8edd65243ec9d6eb91cc63cce2cd16",
+      "sourceName": "@openzeppelin/contracts-upgradeable/token/ERC20/IERC20Upgradeable.sol",
+      "solcConfig": {
+        "version": "0.6.12",
+        "settings": {
+          "optimizer": {
+            "enabled": true,
+            "mode": "3"
+          },
+          "outputSelection": {
+            "*": {
+              "*": [
+                "abi",
+                "evm.methodIdentifiers",
+                "metadata"
+              ],
+              "": [
+                "ast"
+              ]
+            }
+          }
+        },
+        "zksolc": {
+          "version": "1.3.8",
+          "compilerSource": "binary",
+          "settings": {
+            "optimizer": {
+              "enabled": true,
+              "mode": "3"
+            },
+            "compilerPath": "",
+            "experimental": {}
+          }
+        }
+      },
+      "imports": [],
+      "versionPragmas": [
+        ">=0.6.0 <0.8.0"
+      ],
+      "artifacts": [
+        "IERC20Upgradeable"
+      ]
+    },
+    "/Users/jaspers13/Documents/Harvest/harvest-strategy-zksync/node_modules/@openzeppelin/contracts-upgradeable/token/ERC20/ERC20Upgradeable.sol": {
+      "lastModificationDate": 1681562813063,
+      "contentHash": "4404d773c16609e9c316b0acaa487556",
+      "sourceName": "@openzeppelin/contracts-upgradeable/token/ERC20/ERC20Upgradeable.sol",
+      "solcConfig": {
+        "version": "0.6.12",
+        "settings": {
+          "optimizer": {
+            "enabled": true,
+            "mode": "3"
+          },
+          "outputSelection": {
+            "*": {
+              "*": [
+                "abi",
+                "evm.methodIdentifiers",
+                "metadata"
+              ],
+              "": [
+                "ast"
+              ]
+            }
+          }
+        },
+        "zksolc": {
+          "version": "1.3.8",
+          "compilerSource": "binary",
+          "settings": {
+            "optimizer": {
+              "enabled": true,
+              "mode": "3"
+            },
+            "compilerPath": "",
+            "experimental": {}
+          }
+        }
+      },
+      "imports": [
+        "../../utils/ContextUpgradeable.sol",
+        "./IERC20Upgradeable.sol",
+        "../../math/SafeMathUpgradeable.sol",
+        "../../proxy/Initializable.sol"
+      ],
+      "versionPragmas": [
+        ">=0.6.0 <0.8.0"
+      ],
+      "artifacts": [
+        "ERC20Upgradeable"
+      ]
+    },
+    "/Users/jaspers13/Documents/Harvest/harvest-strategy-zksync/node_modules/@openzeppelin/contracts-upgradeable/token/ERC20/SafeERC20Upgradeable.sol": {
+      "lastModificationDate": 1681562814769,
+      "contentHash": "baee93b27b5b91092cb32dd0b22d0a4d",
+      "sourceName": "@openzeppelin/contracts-upgradeable/token/ERC20/SafeERC20Upgradeable.sol",
+      "solcConfig": {
+        "version": "0.6.12",
+        "settings": {
+          "optimizer": {
+            "enabled": true,
+            "mode": "3"
+          },
+          "outputSelection": {
+            "*": {
+              "*": [
+                "abi",
+                "evm.methodIdentifiers",
+                "metadata"
+              ],
+              "": [
+                "ast"
+              ]
+            }
+          }
+        },
+        "zksolc": {
+          "version": "1.3.8",
+          "compilerSource": "binary",
+          "settings": {
+            "optimizer": {
+              "enabled": true,
+              "mode": "3"
+            },
+            "compilerPath": "",
+            "experimental": {}
+          }
+        }
+      },
+      "imports": [
+        "./IERC20Upgradeable.sol",
+        "../../math/SafeMathUpgradeable.sol",
+        "../../utils/AddressUpgradeable.sol"
+      ],
+      "versionPragmas": [
+        ">=0.6.0 <0.8.0"
+      ],
+      "artifacts": [
+        "SafeERC20Upgradeable"
+      ]
+    },
+    "/Users/jaspers13/Documents/Harvest/harvest-strategy-zksync/node_modules/@openzeppelin/contracts-upgradeable/utils/ContextUpgradeable.sol": {
+      "lastModificationDate": 1681562810772,
+      "contentHash": "9f901c17a18eadc08042b6a510da3b7d",
+      "sourceName": "@openzeppelin/contracts-upgradeable/utils/ContextUpgradeable.sol",
+      "solcConfig": {
+        "version": "0.6.12",
+        "settings": {
+          "optimizer": {
+            "enabled": true,
+            "mode": "3"
+          },
+          "outputSelection": {
+            "*": {
+              "*": [
+                "abi",
+                "evm.methodIdentifiers",
+                "metadata"
+              ],
+              "": [
+                "ast"
+              ]
+            }
+          }
+        },
+        "zksolc": {
+          "version": "1.3.8",
+          "compilerSource": "binary",
+          "settings": {
+            "optimizer": {
+              "enabled": true,
+              "mode": "3"
+            },
+            "compilerPath": "",
+            "experimental": {}
+          }
+        }
+      },
+      "imports": [
+        "../proxy/Initializable.sol"
+      ],
+      "versionPragmas": [
+        ">=0.6.0 <0.8.0"
+      ],
+      "artifacts": [
+        "ContextUpgradeable"
+      ]
+    },
+    "/Users/jaspers13/Documents/Harvest/harvest-strategy-zksync/contracts/base/incentives/ViewerNotifyHelperStateful.sol": {
+      "lastModificationDate": 1681563558073,
+      "contentHash": "350799cac8a3e9c13d56647fa3c3173f",
+      "sourceName": "contracts/base/incentives/ViewerNotifyHelperStateful.sol",
+      "solcConfig": {
+        "version": "0.6.12",
+        "settings": {
+          "optimizer": {
+            "enabled": true,
+            "mode": "3"
+          },
+          "outputSelection": {
+            "*": {
+              "*": [
+                "abi",
+                "evm.methodIdentifiers",
+                "metadata"
+              ],
+              "": [
+                "ast"
+              ]
+            }
+          }
+        },
+        "zksolc": {
+          "version": "1.3.8",
+          "compilerSource": "binary",
+          "settings": {
+            "optimizer": {
+              "enabled": true,
+              "mode": "3"
+            },
+            "compilerPath": "",
+            "experimental": {}
+          }
+        }
+      },
+      "imports": [
+        "./NotifyHelperStateful.sol"
+      ],
+      "versionPragmas": [
+        "0.6.12"
+      ],
+      "artifacts": [
+        "ViewerNotifyHelperStateful"
+      ]
+    },
+    "/Users/jaspers13/Documents/Harvest/harvest-strategy-zksync/contracts/base/incentives/NotifyHelperGeneric.sol": {
+      "lastModificationDate": 1681563558070,
+      "contentHash": "5c09eb06d7de2f8d74fa977272affea7",
+      "sourceName": "contracts/base/incentives/NotifyHelperGeneric.sol",
+      "solcConfig": {
+        "version": "0.6.12",
+        "settings": {
+          "optimizer": {
+            "enabled": true,
+            "mode": "3"
+          },
+          "outputSelection": {
+            "*": {
+              "*": [
+                "abi",
+                "evm.methodIdentifiers",
+                "metadata"
+              ],
+              "": [
+                "ast"
+              ]
+            }
+          }
+        },
+        "zksolc": {
+          "version": "1.3.8",
+          "compilerSource": "binary",
+          "settings": {
+            "optimizer": {
+              "enabled": true,
+              "mode": "3"
+            },
+            "compilerPath": "",
+            "experimental": {}
+          }
+        }
+      },
+      "imports": [
+        "@openzeppelin/contracts-upgradeable/math/SafeMathUpgradeable.sol",
+        "@openzeppelin/contracts-upgradeable/token/ERC20/SafeERC20Upgradeable.sol",
+        "@openzeppelin/contracts-upgradeable/token/ERC20/IERC20Upgradeable.sol",
+        "@openzeppelin/contracts-upgradeable/token/ERC20/ERC20Upgradeable.sol",
+        "../inheritance/Controllable.sol",
+        "../PotPool.sol"
+      ],
+      "versionPragmas": [
+        "0.6.12"
+      ],
+      "artifacts": [
+        "NotifyHelperGeneric"
+      ]
+    },
+    "/Users/jaspers13/Documents/Harvest/harvest-strategy-zksync/contracts/base/incentives/GlobalIncentivesHelper.sol": {
+      "lastModificationDate": 1681563558069,
+      "contentHash": "7d6d4110483ec9d31f8ff27f07808fac",
+      "sourceName": "contracts/base/incentives/GlobalIncentivesHelper.sol",
+      "solcConfig": {
+        "version": "0.6.12",
+        "settings": {
+          "optimizer": {
+            "enabled": true,
+            "mode": "3"
+          },
+          "outputSelection": {
+            "*": {
+              "*": [
+                "abi",
+                "evm.methodIdentifiers",
+                "metadata"
+              ],
+              "": [
+                "ast"
+              ]
+            }
+          }
+        },
+        "zksolc": {
+          "version": "1.3.8",
+          "compilerSource": "binary",
+          "settings": {
+            "optimizer": {
+              "enabled": true,
+              "mode": "3"
+            },
+            "compilerPath": "",
+            "experimental": {}
+          }
+        }
+      },
+      "imports": [
+        "./NotifyHelperStateful.sol",
+        "./NotifyHelperGeneric.sol",
+        "../inheritance/Controllable.sol",
+        "@openzeppelin/contracts-upgradeable/math/SafeMathUpgradeable.sol",
+        "@openzeppelin/contracts-upgradeable/token/ERC20/SafeERC20Upgradeable.sol",
+        "@openzeppelin/contracts-upgradeable/token/ERC20/IERC20Upgradeable.sol",
+        "@openzeppelin/contracts-upgradeable/token/ERC20/ERC20Upgradeable.sol"
+      ],
+      "versionPragmas": [
+        "0.6.12"
+      ],
+      "artifacts": [
+        "GlobalIncentivesHelper"
+      ]
+    },
+    "/Users/jaspers13/Documents/Harvest/harvest-strategy-zksync/contracts/base/VaultV1.sol": {
+      "lastModificationDate": 1681563558252,
+      "contentHash": "1d158a954584b3d191ad378dff9b7cfb",
+      "sourceName": "contracts/base/VaultV1.sol",
+      "solcConfig": {
+        "version": "0.6.12",
+        "settings": {
+          "optimizer": {
+            "enabled": true,
+            "mode": "3"
+          },
+          "outputSelection": {
+            "*": {
+              "*": [
+                "abi",
+                "evm.methodIdentifiers",
+                "metadata"
+              ],
+              "": [
+                "ast"
+              ]
+            }
+          }
+        },
+        "zksolc": {
+          "version": "1.3.8",
+          "compilerSource": "binary",
+          "settings": {
+            "optimizer": {
+              "enabled": true,
+              "mode": "3"
+            },
+            "compilerPath": "",
+            "experimental": {}
+          }
+        }
+      },
+      "imports": [
+        "@openzeppelin/contracts-upgradeable/math/MathUpgradeable.sol",
+        "@openzeppelin/contracts-upgradeable/math/SafeMathUpgradeable.sol",
+        "@openzeppelin/contracts-upgradeable/token/ERC20/SafeERC20Upgradeable.sol",
+        "@openzeppelin/contracts-upgradeable/token/ERC20/IERC20Upgradeable.sol",
+        "@openzeppelin/contracts-upgradeable/token/ERC20/ERC20Upgradeable.sol",
+        "@openzeppelin/contracts-upgradeable/utils/AddressUpgradeable.sol",
+        "./interface/IStrategy.sol",
+        "./interface/IVault.sol",
+        "./interface/IController.sol",
+        "./interface/IUpgradeSource.sol",
+        "./inheritance/ControllableInit.sol",
+        "./VaultStorage.sol"
+      ],
+      "versionPragmas": [
+        "0.6.12"
+      ],
+      "artifacts": [
+        "VaultV1"
+      ]
+    },
+    "/Users/jaspers13/Documents/Harvest/harvest-strategy-zksync/contracts/base/VaultStorage.sol": {
+      "lastModificationDate": 1681563558244,
+      "contentHash": "61abeb6e9214b796ee4dbc6c381451ca",
+      "sourceName": "contracts/base/VaultStorage.sol",
+      "solcConfig": {
+        "version": "0.6.12",
+        "settings": {
+          "optimizer": {
+            "enabled": true,
+            "mode": "3"
+          },
+          "outputSelection": {
+            "*": {
+              "*": [
+                "abi",
+                "evm.methodIdentifiers",
+                "metadata"
+              ],
+              "": [
+                "ast"
+              ]
+            }
+          }
+        },
+        "zksolc": {
+          "version": "1.3.8",
+          "compilerSource": "binary",
+          "settings": {
+            "optimizer": {
+              "enabled": true,
+              "mode": "3"
+            },
+            "compilerPath": "",
+            "experimental": {}
+          }
+        }
+      },
+      "imports": [
+        "@openzeppelin/contracts-upgradeable/proxy/Initializable.sol"
+      ],
+      "versionPragmas": [
+        "0.6.12"
+      ],
+      "artifacts": [
+        "VaultStorage"
+      ]
+    },
+    "/Users/jaspers13/Documents/Harvest/harvest-strategy-zksync/node_modules/@openzeppelin/contracts-upgradeable/math/MathUpgradeable.sol": {
+      "lastModificationDate": 1681562814342,
+      "contentHash": "309783d0070f4c863bcb1bd659e2698b",
+      "sourceName": "@openzeppelin/contracts-upgradeable/math/MathUpgradeable.sol",
+      "solcConfig": {
+        "version": "0.6.12",
+        "settings": {
+          "optimizer": {
+            "enabled": true,
+            "mode": "3"
+          },
+          "outputSelection": {
+            "*": {
+              "*": [
+                "abi",
+                "evm.methodIdentifiers",
+                "metadata"
+              ],
+              "": [
+                "ast"
+              ]
+            }
+          }
+        },
+        "zksolc": {
+          "version": "1.3.8",
+          "compilerSource": "binary",
+          "settings": {
+            "optimizer": {
+              "enabled": true,
+              "mode": "3"
+            },
+            "compilerPath": "",
+            "experimental": {}
+          }
+        }
+      },
+      "imports": [],
+      "versionPragmas": [
+        ">=0.6.0 <0.8.0"
+      ],
+      "artifacts": [
+        "MathUpgradeable"
+      ]
+    },
+    "/Users/jaspers13/Documents/Harvest/harvest-strategy-zksync/contracts/base/VaultV2.sol": {
+      "lastModificationDate": 1681563558271,
+      "contentHash": "0a8022d58d929fbfe6e3ce2df476d5c0",
+      "sourceName": "contracts/base/VaultV2.sol",
+      "solcConfig": {
+        "version": "0.6.12",
+        "settings": {
+          "optimizer": {
+            "enabled": true,
+            "mode": "3"
+          },
+          "outputSelection": {
+            "*": {
+              "*": [
+                "abi",
+                "evm.methodIdentifiers",
+                "metadata"
+              ],
+              "": [
+                "ast"
+              ]
+            }
+          }
+        },
+        "zksolc": {
+          "version": "1.3.8",
+          "compilerSource": "binary",
+          "settings": {
+            "optimizer": {
+              "enabled": true,
+              "mode": "3"
+            },
+            "compilerPath": "",
+            "experimental": {}
+          }
+        }
+      },
+      "imports": [
+        "./interface/IERC4626.sol",
+        "./VaultV1.sol"
+      ],
+      "versionPragmas": [
+        "0.6.12"
+      ],
+      "artifacts": [
+        "VaultV2"
+      ]
+    },
+    "/Users/jaspers13/Documents/Harvest/harvest-strategy-zksync/contracts/base/interface/IERC4626.sol": {
+      "lastModificationDate": 1681563596810,
+      "contentHash": "fb5b300de425c4e5abe72ee534f564b1",
+      "sourceName": "contracts/base/interface/IERC4626.sol",
+      "solcConfig": {
+        "version": "0.6.12",
+        "settings": {
+          "optimizer": {
+            "enabled": true,
+            "mode": "3"
+          },
+          "outputSelection": {
+            "*": {
+              "*": [
+                "abi",
+                "evm.methodIdentifiers",
+                "metadata"
+              ],
+              "": [
+                "ast"
+              ]
+            }
+          }
+        },
+        "zksolc": {
+          "version": "1.3.8",
+          "compilerSource": "binary",
+          "settings": {
+            "optimizer": {
+              "enabled": true,
+              "mode": "3"
+            },
+            "compilerPath": "",
+            "experimental": {}
+          }
+        }
+      },
+      "imports": [],
+      "versionPragmas": [
+        "0.6.12"
+      ],
+      "artifacts": [
+        "IERC4626"
+      ]
+    },
+    "/Users/jaspers13/Documents/Harvest/harvest-strategy-zksync/contracts/base/upgradability/StrategyProxy.sol": {
+      "lastModificationDate": 1681563558145,
+      "contentHash": "7d98a5ef1583f12f632c0ec00453cd6e",
+      "sourceName": "contracts/base/upgradability/StrategyProxy.sol",
+      "solcConfig": {
+        "version": "0.6.12",
+        "settings": {
+          "optimizer": {
+            "enabled": true,
+            "mode": "3"
+          },
+          "outputSelection": {
+            "*": {
+              "*": [
+                "abi",
+                "evm.methodIdentifiers",
+                "metadata"
+              ],
+              "": [
+                "ast"
+              ]
+            }
+          }
+        },
+        "zksolc": {
+          "version": "1.3.8",
+          "compilerSource": "binary",
+          "settings": {
+            "optimizer": {
+              "enabled": true,
+              "mode": "3"
+            },
+            "compilerPath": "",
+            "experimental": {}
+          }
+        }
+      },
+      "imports": [
+        "../inheritance/IUpgradeSource.sol",
+        "./BaseUpgradeabilityProxy.sol"
+      ],
+      "versionPragmas": [
+        "0.6.12"
+      ],
+      "artifacts": [
+        "StrategyProxy"
+      ]
+    },
+    "/Users/jaspers13/Documents/Harvest/harvest-strategy-zksync/contracts/base/inheritance/IUpgradeSource.sol": {
+      "lastModificationDate": 1681563558108,
+      "contentHash": "2f822403441791cf8356e80cb5deebb6",
+      "sourceName": "contracts/base/inheritance/IUpgradeSource.sol",
+      "solcConfig": {
+        "version": "0.6.12",
+        "settings": {
+          "optimizer": {
+            "enabled": true,
+            "mode": "3"
+          },
+          "outputSelection": {
+            "*": {
+              "*": [
+                "abi",
+                "evm.methodIdentifiers",
+                "metadata"
+              ],
+              "": [
+                "ast"
+              ]
+            }
+          }
+        },
+        "zksolc": {
+          "version": "1.3.8",
+          "compilerSource": "binary",
+          "settings": {
+            "optimizer": {
+              "enabled": true,
+              "mode": "3"
+            },
+            "compilerPath": "",
+            "experimental": {}
+          }
+        }
+      },
+      "imports": [],
+      "versionPragmas": [
+        "0.6.12"
+      ],
+      "artifacts": [
+        "IUpgradeSource"
+      ]
+    },
+    "/Users/jaspers13/Documents/Harvest/harvest-strategy-zksync/contracts/base/factory/strategy/UpgradableStrategyFactory.sol": {
+      "lastModificationDate": 1681563558047,
+      "contentHash": "1b38e7c51e28f1759e99124172b2316f",
+      "sourceName": "contracts/base/factory/strategy/UpgradableStrategyFactory.sol",
+      "solcConfig": {
+        "version": "0.6.12",
+        "settings": {
+          "optimizer": {
+            "enabled": true,
+            "mode": "3"
+          },
+          "outputSelection": {
+            "*": {
+              "*": [
+                "abi",
+                "evm.methodIdentifiers",
+                "metadata"
+              ],
+              "": [
+                "ast"
+              ]
+            }
+          }
+        },
+        "zksolc": {
+          "version": "1.3.8",
+          "compilerSource": "binary",
+          "settings": {
+            "optimizer": {
+              "enabled": true,
+              "mode": "3"
+            },
+            "compilerPath": "",
+            "experimental": {}
+          }
+        }
+      },
+      "imports": [
+        "../interface/IStrategyFactory.sol",
+        "../../upgradability/StrategyProxy.sol",
+        "../../inheritance/OwnableWhitelist.sol"
+      ],
+      "versionPragmas": [
+        "0.6.12"
+      ],
+      "artifacts": [
+        "IInitializableStrategy",
+        "UpgradableStrategyFactory"
+      ]
+    },
+    "/Users/jaspers13/Documents/Harvest/harvest-strategy-zksync/contracts/base/factory/interface/IStrategyFactory.sol": {
+      "lastModificationDate": 1681563558044,
+      "contentHash": "ee6534963c46355d20d0a314558e40f2",
+      "sourceName": "contracts/base/factory/interface/IStrategyFactory.sol",
+      "solcConfig": {
+        "version": "0.6.12",
+        "settings": {
+          "optimizer": {
+            "enabled": true,
+            "mode": "3"
+          },
+          "outputSelection": {
+            "*": {
+              "*": [
+                "abi",
+                "evm.methodIdentifiers",
+                "metadata"
+              ],
+              "": [
+                "ast"
+              ]
+            }
+          }
+        },
+        "zksolc": {
+          "version": "1.3.8",
+          "compilerSource": "binary",
+          "settings": {
+            "optimizer": {
+              "enabled": true,
+              "mode": "3"
+            },
+            "compilerPath": "",
+            "experimental": {}
+          }
+        }
+      },
+      "imports": [],
+      "versionPragmas": [
+        "0.6.12"
+      ],
+      "artifacts": [
+        "IStrategyFactory"
+      ]
+    },
+    "/Users/jaspers13/Documents/Harvest/harvest-strategy-zksync/contracts/base/factory/MegaFactory.sol": {
+      "lastModificationDate": 1681563558040,
+      "contentHash": "a96d0263258c3d561a35b9cbd9cb35bc",
+      "sourceName": "contracts/base/factory/MegaFactory.sol",
+      "solcConfig": {
+        "version": "0.6.12",
+        "settings": {
+          "optimizer": {
+            "enabled": true,
+            "mode": "3"
+          },
+          "outputSelection": {
+            "*": {
+              "*": [
+                "abi",
+                "evm.methodIdentifiers",
+                "metadata"
+              ],
+              "": [
+                "ast"
+              ]
+            }
+          }
+        },
+        "zksolc": {
+          "version": "1.3.8",
+          "compilerSource": "binary",
+          "settings": {
+            "optimizer": {
+              "enabled": true,
+              "mode": "3"
+            },
+            "compilerPath": "",
+            "experimental": {}
+          }
+        }
+      },
+      "imports": [
+        "@openzeppelin/contracts/access/Ownable.sol",
+        "./interface/IStrategyFactory.sol",
+        "./interface/IVaultFactory.sol",
+        "./interface/IPoolFactory.sol",
+        "../interface/IVault.sol",
+        "../inheritance/Governable.sol"
+      ],
+      "versionPragmas": [
+        "0.6.12"
+      ],
+      "artifacts": [
+        "MegaFactory"
+      ]
+    },
+    "/Users/jaspers13/Documents/Harvest/harvest-strategy-zksync/contracts/base/factory/interface/IPoolFactory.sol": {
+      "lastModificationDate": 1681563558043,
+      "contentHash": "c089c3958731a5374c1a2fbc72428ac1",
+      "sourceName": "contracts/base/factory/interface/IPoolFactory.sol",
+      "solcConfig": {
+        "version": "0.6.12",
+        "settings": {
+          "optimizer": {
+            "enabled": true,
+            "mode": "3"
+          },
+          "outputSelection": {
+            "*": {
+              "*": [
+                "abi",
+                "evm.methodIdentifiers",
+                "metadata"
+              ],
+              "": [
+                "ast"
+              ]
+            }
+          }
+        },
+        "zksolc": {
+          "version": "1.3.8",
+          "compilerSource": "binary",
+          "settings": {
+            "optimizer": {
+              "enabled": true,
+              "mode": "3"
+            },
+            "compilerPath": "",
+            "experimental": {}
+          }
+        }
+      },
+      "imports": [],
+      "versionPragmas": [
+        "0.6.12"
+      ],
+      "artifacts": [
+        "IPoolFactory"
+      ]
+    },
+    "/Users/jaspers13/Documents/Harvest/harvest-strategy-zksync/contracts/base/factory/pool/PotPoolFactory.sol": {
+      "lastModificationDate": 1681563558046,
+      "contentHash": "d8900b7baee44deec32963dc30093bfc",
+      "sourceName": "contracts/base/factory/pool/PotPoolFactory.sol",
+      "solcConfig": {
+        "version": "0.6.12",
+        "settings": {
+          "optimizer": {
+            "enabled": true,
+            "mode": "3"
+          },
+          "outputSelection": {
+            "*": {
+              "*": [
+                "abi",
+                "evm.methodIdentifiers",
+                "metadata"
+              ],
+              "": [
+                "ast"
+              ]
+            }
+          }
+        },
+        "zksolc": {
+          "version": "1.3.8",
+          "compilerSource": "binary",
+          "settings": {
+            "optimizer": {
+              "enabled": true,
+              "mode": "3"
+            },
+            "compilerPath": "",
+            "experimental": {}
+          }
+        }
+      },
+      "imports": [
+        "@openzeppelin/contracts/token/ERC20/ERC20.sol",
+        "../../inheritance/Governable.sol",
+        "../../inheritance/OwnableWhitelist.sol",
+        "../interface/IPoolFactory.sol",
+        "../../PotPool.sol"
+      ],
+      "versionPragmas": [
+        "0.6.12"
+      ],
+      "artifacts": [
+        "PotPoolFactory"
+      ]
+    },
+    "/Users/jaspers13/Documents/Harvest/harvest-strategy-zksync/contracts/base/ProfitSharingReceiver.sol": {
+      "lastModificationDate": 1681563558206,
+      "contentHash": "d3d0c348347197ffa4386d56d8b347bf",
+      "sourceName": "contracts/base/ProfitSharingReceiver.sol",
+      "solcConfig": {
+        "version": "0.6.12",
+        "settings": {
+          "optimizer": {
+            "enabled": true,
+            "mode": "3"
+          },
+          "outputSelection": {
+            "*": {
+              "*": [
+                "abi",
+                "evm.methodIdentifiers",
+                "metadata"
+              ],
+              "": [
+                "ast"
+              ]
+            }
+          }
+        },
+        "zksolc": {
+          "version": "1.3.8",
+          "compilerSource": "binary",
+          "settings": {
+            "optimizer": {
+              "enabled": true,
+              "mode": "3"
+            },
+            "compilerPath": "",
+            "experimental": {}
+          }
+        }
+      },
+      "imports": [
+        "@openzeppelin/contracts/utils/Address.sol",
+        "@openzeppelin/contracts/math/SafeMath.sol",
+        "@openzeppelin/contracts/token/ERC20/SafeERC20.sol",
+        "@openzeppelin/contracts/token/ERC20/IERC20.sol",
+        "./inheritance/Governable.sol",
+        "./interface/IProfitSharingReceiver.sol"
+      ],
+      "versionPragmas": [
+        "0.6.12"
+      ],
+      "artifacts": [
+        "ProfitSharingReceiver"
+      ]
+    },
+    "/Users/jaspers13/Documents/Harvest/harvest-strategy-zksync/contracts/base/interface/IUniversalLiquidatorV2.sol": {
+      "lastModificationDate": 1681563596822,
+      "contentHash": "88a6d93fe109d0b61287bc3ae9b9c434",
+      "sourceName": "contracts/base/interface/IUniversalLiquidatorV2.sol",
+      "solcConfig": {
+        "version": "0.6.12",
+        "settings": {
+          "optimizer": {
+            "enabled": true,
+            "mode": "3"
+          },
+          "outputSelection": {
+            "*": {
+              "*": [
+                "abi",
+                "evm.methodIdentifiers",
+                "metadata"
+              ],
+              "": [
+                "ast"
+              ]
+            }
+          }
+        },
+        "zksolc": {
+          "version": "1.3.8",
+          "compilerSource": "binary",
+          "settings": {
+            "optimizer": {
+              "enabled": true,
+              "mode": "3"
+            },
+            "compilerPath": "",
+            "experimental": {}
+          }
+        }
+      },
+      "imports": [
+        "./IUniversalLiquidatorV1.sol"
+      ],
+      "versionPragmas": [
+        "0.6.12"
+      ],
+      "artifacts": [
+        "IUniversalLiquidatorV2"
+      ]
+    },
+    "/Users/jaspers13/Documents/Harvest/harvest-strategy-zksync/contracts/base/incentives/GlobalIncentivesExecutor.sol": {
+      "lastModificationDate": 1681563558068,
+      "contentHash": "4f3a8918c5e1ba7695706a891777ed19",
+      "sourceName": "contracts/base/incentives/GlobalIncentivesExecutor.sol",
+      "solcConfig": {
+        "version": "0.6.12",
+        "settings": {
+          "optimizer": {
+            "enabled": true,
+            "mode": "3"
+          },
+          "outputSelection": {
+            "*": {
+              "*": [
+                "abi",
+                "evm.methodIdentifiers",
+                "metadata"
+              ],
+              "": [
+                "ast"
+              ]
+            }
+          }
+        },
+        "zksolc": {
+          "version": "1.3.8",
+          "compilerSource": "binary",
+          "settings": {
+            "optimizer": {
+              "enabled": true,
+              "mode": "3"
+            },
+            "compilerPath": "",
+            "experimental": {}
+          }
+        }
+      },
+      "imports": [
+        "../inheritance/Controllable.sol",
+        "../interface/IGlobalIncentivesHelper.sol",
+        "@openzeppelin/contracts-upgradeable/math/SafeMathUpgradeable.sol",
+        "@openzeppelin/contracts-upgradeable/token/ERC20/SafeERC20Upgradeable.sol",
+        "@openzeppelin/contracts-upgradeable/token/ERC20/IERC20Upgradeable.sol",
+        "@openzeppelin/contracts-upgradeable/token/ERC20/ERC20Upgradeable.sol"
+      ],
+      "versionPragmas": [
+        "0.6.12"
+      ],
+      "artifacts": [
+        "GlobalIncentivesExecutor"
+      ]
+    },
+    "/Users/jaspers13/Documents/Harvest/harvest-strategy-zksync/contracts/base/interface/IGlobalIncentivesHelper.sol": {
+      "lastModificationDate": 1681563596812,
+      "contentHash": "3ddf40bf787ad4786d43a5dffc7e3aad",
+      "sourceName": "contracts/base/interface/IGlobalIncentivesHelper.sol",
+      "solcConfig": {
+        "version": "0.6.12",
+        "settings": {
+          "optimizer": {
+            "enabled": true,
+            "mode": "3"
+          },
+          "outputSelection": {
+            "*": {
+              "*": [
+                "abi",
+                "evm.methodIdentifiers",
+                "metadata"
+              ],
+              "": [
+                "ast"
+              ]
+            }
+          }
+        },
+        "zksolc": {
+          "version": "1.3.8",
+          "compilerSource": "binary",
+          "settings": {
+            "optimizer": {
+              "enabled": true,
+              "mode": "3"
+            },
+            "compilerPath": "",
+            "experimental": {}
+          }
+        }
+      },
+      "imports": [],
+      "versionPragmas": [
+        "0.6.12"
+      ],
+      "artifacts": [
+        "IGlobalIncentivesHelper"
+      ]
+    },
+    "/Users/jaspers13/Documents/Harvest/harvest-strategy-zksync/contracts/base/Reader.sol": {
+      "lastModificationDate": 1681563558210,
+      "contentHash": "696b888f7661093711d6284bf2ea910c",
+      "sourceName": "contracts/base/Reader.sol",
+      "solcConfig": {
+        "version": "0.6.12",
+        "settings": {
+          "optimizer": {
+            "enabled": true,
+            "mode": "3"
+          },
+          "outputSelection": {
+            "*": {
+              "*": [
+                "abi",
+                "evm.methodIdentifiers",
+                "metadata"
+              ],
+              "": [
+                "ast"
+              ]
+            }
+          }
+        },
+        "zksolc": {
+          "version": "1.3.8",
+          "compilerSource": "binary",
+          "settings": {
+            "optimizer": {
+              "enabled": true,
+              "mode": "3"
+            },
+            "compilerPath": "",
+            "experimental": {}
+          }
+        }
+      },
+      "imports": [
+        "@openzeppelin/contracts-upgradeable/token/ERC20/IERC20Upgradeable.sol",
+        "./interface/IVault.sol"
+      ],
+      "versionPragmas": [
+        "0.6.12"
+      ],
+      "artifacts": [
+        "Reader"
+      ]
+    },
+    "/Users/jaspers13/Documents/Harvest/harvest-strategy-zksync/contracts/base/interface/IPotPool.sol": {
+      "lastModificationDate": 1681563596814,
+      "contentHash": "086f0636f837455978a5a9eb3403069c",
+      "sourceName": "contracts/base/interface/IPotPool.sol",
+      "solcConfig": {
+        "version": "0.6.12",
+        "settings": {
+          "optimizer": {
+            "enabled": true,
+            "mode": "3"
+          },
+          "outputSelection": {
+            "*": {
+              "*": [
+                "abi",
+                "evm.methodIdentifiers",
+                "metadata"
+              ],
+              "": [
+                "ast"
+              ]
+            }
+          }
+        },
+        "zksolc": {
+          "version": "1.3.8",
+          "compilerSource": "binary",
+          "settings": {
+            "optimizer": {
+              "enabled": true,
+              "mode": "3"
+            },
+            "compilerPath": "",
+            "experimental": {}
+          }
+        }
+      },
+      "imports": [],
+      "versionPragmas": [
+        "0.6.12"
+      ],
+      "artifacts": [
+        "IPotPool"
+      ]
+    },
+    "/Users/jaspers13/Documents/Harvest/harvest-strategy-zksync/contracts/base/interface/weth/IWETH.sol": {
+      "lastModificationDate": 1681563596884,
+      "contentHash": "b4e4f180919982916c2314053a60fe7d",
+      "sourceName": "contracts/base/interface/weth/IWETH.sol",
+      "solcConfig": {
+        "version": "0.6.12",
+        "settings": {
+          "optimizer": {
+            "enabled": true,
+            "mode": "3"
+          },
+          "outputSelection": {
+            "*": {
+              "*": [
+                "abi",
+                "evm.methodIdentifiers",
+                "metadata"
+              ],
+              "": [
+                "ast"
+              ]
+            }
+          }
+        },
+        "zksolc": {
+          "version": "1.3.8",
+          "compilerSource": "binary",
+          "settings": {
+            "optimizer": {
+              "enabled": true,
+              "mode": "3"
+            },
+            "compilerPath": "",
+            "experimental": {}
+          }
+        }
+      },
+      "imports": [],
+      "versionPragmas": [
+        "0.6.12"
+      ],
+      "artifacts": [
+        "IWETH"
+      ]
+    },
+    "/Users/jaspers13/Documents/Harvest/harvest-strategy-zksync/contracts/base/upgradability/IUpgradable.sol": {
+      "lastModificationDate": 1681563558141,
+      "contentHash": "0d1bdaf347a34ffab75c7a86d0c9ae87",
+      "sourceName": "contracts/base/upgradability/IUpgradable.sol",
+      "solcConfig": {
+        "version": "0.6.12",
+        "settings": {
+          "optimizer": {
+            "enabled": true,
+            "mode": "3"
+          },
+          "outputSelection": {
+            "*": {
+              "*": [
+                "abi",
+                "evm.methodIdentifiers",
+                "metadata"
+              ],
+              "": [
+                "ast"
+              ]
+            }
+          }
+        },
+        "zksolc": {
+          "version": "1.3.8",
+          "compilerSource": "binary",
+          "settings": {
+            "optimizer": {
+              "enabled": true,
+              "mode": "3"
+            },
+            "compilerPath": "",
+            "experimental": {}
+          }
+        }
+      },
+      "imports": [],
+      "versionPragmas": [
+        "0.6.12"
+      ],
+      "artifacts": [
+        "IUpgradeableStrategy"
+      ]
+    },
+    "/Users/jaspers13/Documents/Harvest/harvest-strategy-zksync/contracts/strategies/test/NoopStrategyMainnet_iFARM.sol": {
+      "lastModificationDate": 1690357027772,
+      "contentHash": "47e5743fcbd2d11f50f231c284a09eed",
+      "sourceName": "contracts/strategies/test/NoopStrategyMainnet_iFARM.sol",
+      "solcConfig": {
+        "version": "0.6.12",
+        "settings": {
+          "optimizer": {
+            "enabled": true,
+            "mode": "3"
+          },
+          "outputSelection": {
+            "*": {
+              "*": [
+                "abi",
+                "evm.methodIdentifiers",
+                "metadata"
+              ],
+              "": [
+                "ast"
+              ]
+            }
+          }
+        },
+        "zksolc": {
+          "version": "1.3.8",
+          "compilerSource": "binary",
+          "settings": {
+            "optimizer": {
+              "enabled": true,
+              "mode": "3"
+            },
+            "compilerPath": "",
+            "experimental": {}
+          }
+        }
+      },
+      "imports": [
+        "../../base/noop/NoopStrategyUpgradeable.sol"
+      ],
+      "versionPragmas": [
+        "0.6.12"
+      ],
+      "artifacts": [
+        "NoopStrategyMainnet_iFARM"
+      ]
+    }
+  }
+}

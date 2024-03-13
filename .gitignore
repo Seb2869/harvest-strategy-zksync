@@ -1,0 +1,20 @@
+node_modules
+
+#Hardhat files
+cache
+artifacts
+deployments
+
+scripts/core
+
+secret.json
+secret*.json
+dev-keys.json
+
+package-lock.json
+
+.DS_Store
+settings.json
+
+coverage
+coverage.json
