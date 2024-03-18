@@ -1,19 +1,22 @@
 const prompt = require('prompt');
 const hre = require("hardhat");
-const { type2Transaction } = require('./utils.js');
+const { Deployer } = require("@matterlabs/hardhat-zksync-deploy")
 
 async function main() {
   console.log("New implementation deployment.");
   console.log("Specify the implementation contract's name");
   prompt.start();
-  const addresses = require("../test/test-config.js");
+  const wallet = await zksyncEthers.getWallet()
+  const deployer = new Deployer(hre, wallet);
 
   const {implName} = await prompt.get(['implName']);
 
-  const ImplContract = artifacts.require(implName);
-  const impl = await type2Transaction(ImplContract.new);
+  const ImplContract = await deployer.loadArtifact(implName);
+  const impl = await deployer.deploy(ImplContract);
+  const verificationId = await hre.run("verify:verify", {address: impl.target});
+  console.log("Verifying source code. Id:", verificationId);
 
-  console.log("Deployment complete. Implementation deployed at:", impl.creates);
+  console.log("Deployment complete. Implementation deployed at:", impl.target);
 }
 
 main()

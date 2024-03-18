@@ -1,11 +1,14 @@
 const prompt = require('prompt');
 const hre = require("hardhat");
-const { type2Transaction } = require('./utils.js');
+const { Deployer } = require("@matterlabs/hardhat-zksync-deploy")
 
 function cleanupObj(d) {
-  for (let i = 0; i < 10; i++) delete d[String(i)];
-  delete d["vaultType"];
-  return d;
+  let obj = {};
+  obj.Underlying = d[1];
+  obj.NewVault = d[2];
+  obj.NewStrategy = d[3];
+  obj.NewPool = d[4];
+  return obj;
 }
 
 async function main() {
@@ -13,24 +16,28 @@ async function main() {
   console.log("Specify a unique ID (for the JSON), vault's underlying token address, and upgradable strategy implementation name");
   prompt.start();
   const addresses = require("../test/test-config.js");
-  const MegaFactory = artifacts.require("MegaFactory");
+  const wallet = await zksyncEthers.getWallet()
+  const deployer = new Deployer(hre, wallet);
 
   const {id, underlying, strategyName} = await prompt.get(['id', 'underlying', 'strategyName']);
-  const factory = await MegaFactory.at(addresses.Factory.MegaFactory);
+  const factory = await zksyncEthers.getContractAt("MegaFactory", addresses.Factory.MegaFactory);
 
-  const StrategyImpl = artifacts.require(strategyName);
-  const impl = await type2Transaction(StrategyImpl.new);
+  const StrategyImpl = await deployer.loadArtifact(strategyName);
+  const impl = await deployer.deploy(StrategyImpl);
+  const verificationId = await hre.run("verify:verify", {address: impl.target});
+  console.log("Verifying source code. Id:", verificationId);
 
-  console.log("Implementation deployed at:", impl.creates);
+  console.log("Implementation deployed at:", impl.target);
 
-  await type2Transaction(factory.createRegularVaultUsingUpgradableStrategy, id, underlying, impl.creates)
+  await factory.createRegularVaultUsingUpgradableStrategy(id, underlying, impl.target)
 
   const deployment = cleanupObj(await factory.completedDeployments(id));
+  console.log(deployment)
   console.log("======");
   console.log(`${id}: ${JSON.stringify(deployment, null, 2)}`);
   console.log("======");
 
-  console.log("Deployment complete. Add the JSON above to `harvest-api` (https://github.com/harvest-finance/harvest-api/blob/master/data/mainnet/addresses.json) repo and add entries to `tokens.js` and `pools.js`.");
+  console.log("Deployment complete.");
 }
 
 main()

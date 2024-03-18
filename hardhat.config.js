@@ -1,10 +1,10 @@
-require("@nomiclabs/hardhat-etherscan");
 require("@nomiclabs/hardhat-truffle5");
 require("@nomiclabs/hardhat-web3");
-require("@nomiclabs/hardhat-ethers");
+require("@matterlabs/hardhat-zksync-ethers");
 require("@matterlabs/hardhat-zksync-verify");
 require("@matterlabs/hardhat-zksync-solc");
 require("@matterlabs/hardhat-zksync-deploy");
+require('hardhat-contract-sizer');
 
 const secret = require('./dev-keys.json');
 
@@ -46,18 +46,30 @@ module.exports = {
         settings: {
           optimizer: {
             enabled: true,
-            runs: 200,
+            runs: 1,
           },
         },
       },
     ],
   },
   zksolc: {
-    version: "1.3.8",
+    // version: "latest",
     compilerSource: "binary",
-    settings: {},
+    settings: {
+      optimizer: {
+        enabled: true,
+        mode: 'z',
+        fallback_to_optimizing_for_size: true,
+      }
+    },
   },
   mocha: {
     timeout: 2000000
+  },
+  contractSizer: {
+    alphaSort: false,
+    disambiguatePaths: false,
+    runOnCompile: true,
+    strict: false,
   },
 };

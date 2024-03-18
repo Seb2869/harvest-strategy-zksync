@@ -17,10 +17,8 @@ abstract contract IRewardDistributionRecipient is Ownable {
     mapping (address => bool) public rewardDistribution;
 
     constructor(address[] memory _rewardDistributions) public {
-        // multisig on Arbitrum
-        rewardDistribution[0xf3D1A027E858976634F81B7c41B09A05A46EdA21] = true;
-        // NotifyHelper
-        rewardDistribution[0xC0cE53f755feAe93Fd219b2Cd0F58a4Fd0d535Dd] = true;
+        // governance on zkSync
+        rewardDistribution[0x6a74649aCFD7822ae8Fb78463a9f2192752E5Aa2] = true;
 
         for(uint256 i = 0; i < _rewardDistributions.length; i++) {
           rewardDistribution[_rewardDistributions[i]] = true;

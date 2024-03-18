@@ -1,23 +1,23 @@
 const prompt = require('prompt');
-const hre = require("hardhat");
-const { type2Transaction } = require('./utils.js');
 
 function cleanupObj(d) {
-  for (let i = 0; i < 10; i++) delete d[String(i)];
-  delete d["vaultType"];
-  return d;
+  let obj = {};
+  obj.Underlying = d[1];
+  obj.NewVault = d[2];
+  obj.NewStrategy = d[3];
+  obj.NewPool = d[4];
+  return obj;
 }
 
 async function main() {
   console.log("Regular vault deployment (no strategy).\nSpecify a unique ID (for the JSON) and the vault's underlying token address");
   prompt.start();
   const addresses = require("../test/test-config.js");
-  const MegaFactory = artifacts.require("MegaFactory");
 
   const {id, underlying} = await prompt.get(['id', 'underlying']);
-  const factory = await MegaFactory.at(addresses.Factory.MegaFactory);
+  const factory = await zksyncEthers.getContractAt("MegaFactory", addresses.Factory.MegaFactory)
 
-  await type2Transaction(factory.createRegularVault, id, underlying);
+  await factory.createRegularVault(id, underlying);
 
   const deployment = cleanupObj(await factory.completedDeployments(id));
   console.log("======");

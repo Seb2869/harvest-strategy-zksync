@@ -1,4 +1,4 @@
-# Arbitrum Chain: Harvest Strategy Development
+# zkSYNC ERA Chain: Harvest Strategy Development
 
 This [Hardhat](https://hardhat.org/) environment is configured to use Mainnet fork by default and provides templates and utilities for strategy development and testing.
 
