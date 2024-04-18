@@ -1,10 +1,8 @@
-require("@nomiclabs/hardhat-truffle5");
+// require("@nomiclabs/hardhat-etherscan");
 require("@nomiclabs/hardhat-web3");
-require("@matterlabs/hardhat-zksync-ethers");
-require("@matterlabs/hardhat-zksync-verify");
-require("@matterlabs/hardhat-zksync-solc");
-require("@matterlabs/hardhat-zksync-deploy");
+require("@matterlabs/hardhat-zksync");
 require('hardhat-contract-sizer');
+require("@nomiclabs/hardhat-truffle5");
 
 const secret = require('./dev-keys.json');
 
@@ -21,12 +19,12 @@ module.exports = {
       accounts: {
         mnemonic: secret.mnemonic,
       },
-      chainId: 324,
+      // chainId: 324,
       zksync: true,
       ethNetwork: `https://eth-mainnet.alchemyapi.io/v2/${secret.alchemyKey}`,
       forking: {
         url: `https://mainnet.era.zksync.io`,
-        // blockNumber: 79985280, // <-- edit here
+        // blockNumber: 31733639, // <-- edit here
       },
     },
     mainnet: {
@@ -38,11 +36,16 @@ module.exports = {
       },
       verifyURL: 'https://zksync2-mainnet-explorer.zksync.io/contract_verification'
     },
+    local: {
+      url: "http://127.0.0.1:8011",
+      ethNetwork: "", // in-memory node doesn't support eth node; removing this line will cause an error
+      zksync: true,
+    }
   },
   solidity: {
     compilers: [
       {
-        version: "0.6.12",
+        version: "0.8.24",
         settings: {
           optimizer: {
             enabled: true,
@@ -69,7 +72,22 @@ module.exports = {
   contractSizer: {
     alphaSort: false,
     disambiguatePaths: false,
-    runOnCompile: true,
+    runOnCompile: false,
     strict: false,
+  },
+  etherscan: {
+    apiKey: {
+      zksync: secret.etherscanAPI,
+    },
+    customChains: [
+      {
+        network: "zksync",
+        chainId: 324,
+        urls: {
+          apiURL: "https://api-era.zksync.network/api",
+          browserURL: "https://era.zksync.network/"
+        }
+      }
+    ]
   },
 };

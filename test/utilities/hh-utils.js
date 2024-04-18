@@ -1,9 +1,9 @@
 const makeVault = require("./make-vault.js");
 const addresses = require("../test-config.js");
-const IController = artifacts.require("IController");
-const IFeeRewardForwarder = artifacts.require("IFeeRewardForwarder");
-const Vault = artifacts.require("VaultV2");
-const IUpgradeableStrategy = artifacts.require("IUpgradeableStrategy");
+const IController = hre.artifacts.readArtifact("IController");
+const Vault = hre.artifacts.readArtifact("VaultV2");
+const IUpgradeableStrategy = hre.artifacts.readArtifact("IUpgradeableStrategy");
+const ILiquidatorRegistry = hre.artifacts.readArtifact("IUniversalLiquidatorRegistry");
 
 const Utils = require("./Utils.js");
 
@@ -24,42 +24,17 @@ async function setupCoreProtocol(config) {
   // Set vault (or Deploy new vault), underlying, underlying Whale,
   // amount the underlying whale should send to farmers
   if(config.existingVaultAddress != null){
-    vault = await Vault.at(config.existingVaultAddress);
-    console.log("Fetching Vault at: ", vault.address);
+    vault = await zksyncEthers.getContractAt("VaultV2", config.existingVaultAddress);
+    console.log("Fetching Vault at: ", vault.target);
   } else {
-    const implAddress = config.vaultImplementationOverride || addresses.VaultImplementationV2;
-    vault = await makeVault(implAddress, addresses.Storage, config.underlying.address, 100, 100, {
+    const implAddress = config.vaultImplementationOverride || addresses.VaultImplementation;
+    vault = await makeVault(implAddress, addresses.Storage, config.underlying.target, 100, 100, {
       from: config.governance,
     });
-    console.log("New Vault Deployed: ", vault.address);
+    console.log("New Vault Deployed: ", vault.target);
   }
 
   controller = await IController.at(addresses.Controller);
-  feeRewardForwarder = await IFeeRewardForwarder.at(await controller.feeRewardForwarder());
-
-
-  if (config.feeRewardForwarder) {/*
-    const FeeRewardForwarder = artifacts.require("FeeRewardForwarder");
-    const feeRewardForwarder = await FeeRewardForwarder.new(
-      addresses.Storage,
-      addresses.FARM,
-      addresses.miFARM,
-      addresses.UniversalLiquidatorRegistry
-    );
-
-    config.feeRewardForwarder = feeRewardForwarder.address;*/
-    console.log("Setting up a custom fee reward forwarder...");
-    await controller.setFeeRewardForwarder(
-      config.feeRewardForwarder,
-      { from: config.governance }
-    );
-
-    const NoMintRewardPool = artifacts.require("NoMintRewardPool");
-    const farmRewardPool = await NoMintRewardPool.at("0x8f5adC58b32D4e5Ca02EAC0E293D35855999436C");
-    await farmRewardPool.setRewardDistribution(config.feeRewardForwarder, {from: config.governance});
-
-    console.log("Done setting up fee reward forwarder!");
-  }
 
   let rewardPool = null;
 
@@ -70,12 +45,9 @@ async function setupCoreProtocol(config) {
   if(config.rewardPool != null && config.existingRewardPoolAddress == null) {
     const rewardTokens = config.rewardPoolConfig.rewardTokens || [addresses.FARM];
     const rewardDistributions = [config.governance];
-    if (config.feeRewardForwarder) {
-      rewardDistributions.push(config.feeRewardForwarder);
-    }
 
     if (config.rewardPoolConfig.type === 'PotPool') {
-      const PotPool = artifacts.require("PotPool");
+      const PotPool = hre.artifacts.readArtifact("PotPool");
       console.log("reward pool needs to be deployed");
       rewardPool = await PotPool.new(
         rewardTokens,
@@ -90,7 +62,7 @@ async function setupCoreProtocol(config) {
       );
       console.log("New PotPool deployed: ", rewardPool.address);
     } else {
-      const NoMintRewardPool = artifacts.require("NoMintRewardPool");
+      const NoMintRewardPool = hre.artifacts.readArtifact("NoMintRewardPool");
       console.log("reward pool needs to be deployed");
       rewardPool = await NoMintRewardPool.new(
         rewardTokens[0],
@@ -105,9 +77,23 @@ async function setupCoreProtocol(config) {
       console.log("New NoMintRewardPool deployed: ", rewardPool.address);
     }
   } else if(config.existingRewardPoolAddress != null) {
-    const PotPool = artifacts.require("PotPool");
+    const PotPool = hre.artifacts.readArtifact("PotPool");
     rewardPool = await PotPool.at(config.existingRewardPoolAddress);
     console.log("Fetching Reward Pool deployed: ", rewardPool.address);
+  }
+
+  let universalLiquidatorRegistry = await ILiquidatorRegistry.at(addresses.UniversalLiquidatorRegistry);
+
+  // set liquidation paths
+  if(config.liquidation) {
+    for (i=0;i<config.liquidation.length;i++) {
+      dex = Object.keys(config.liquidation[i])[0];
+      await universalLiquidatorRegistry.setPath(
+        web3.utils.keccak256(dex),
+        config.liquidation[i][dex],
+        {from: config.ULOwner}
+      );
+    }
   }
 
   // default arguments are storage and vault addresses
@@ -137,7 +123,7 @@ async function setupCoreProtocol(config) {
     );
   } else {
     strategyImpl = await config.strategyArtifact.new();
-    const StrategyProxy = artifacts.require("StrategyProxy");
+    const StrategyProxy = hre.artifacts.readArtifact("StrategyProxy");
 
     const strategyProxy = await StrategyProxy.new(strategyImpl.address);
     strategy = await config.strategyArtifact.at(strategyProxy.address);
@@ -148,18 +134,6 @@ async function setupCoreProtocol(config) {
   }
 
   console.log("Strategy Deployed: ", strategy.address);
-
-  if (config.liquidationPath) {
-    const path = config.liquidationPath.path;
-    const router = addresses[config.liquidationPath.router];
-    await feeRewardForwarder.setConversionPath(
-      path[0],
-      path[path.length - 1],
-      path,
-      router,
-      {from: config.governance}
-    );
-  }
 
   if (config.announceStrategy === true) {
     // Announce switch, time pass, switch to strategy

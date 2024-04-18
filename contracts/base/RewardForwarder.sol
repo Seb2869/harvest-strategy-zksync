@@ -1,8 +1,8 @@
 // SPDX-License-Identifier: Unlicense
-pragma solidity 0.6.12;
+pragma solidity 0.8.24;
 
-import "@openzeppelin/contracts/math/SafeMath.sol";
-import "@openzeppelin/contracts/token/ERC20/SafeERC20.sol";
+import "@openzeppelin/contracts/utils/math/SafeMath.sol";
+import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 
 import "./inheritance/Governable.sol";
@@ -10,7 +10,7 @@ import "./interface/IController.sol";
 import "./interface/IRewardForwarder.sol";
 import "./interface/IProfitSharingReceiver.sol";
 import "./interface/IStrategy.sol";
-import "./interface/IUniversalLiquidatorV1.sol";
+import "./interface/universalLiquidator/IUniversalLiquidator.sol";
 import "./inheritance/Controllable.sol";
 
 /**
@@ -61,7 +61,7 @@ contract RewardForwarder is Controllable {
             uint amountOutMin = 1;
 
             if (_strategistFee > 0) {
-                IUniversalLiquidatorV1(liquidator).swapTokens(
+                IUniversalLiquidator(liquidator).swap(
                     _token,
                     _targetToken,
                     _strategistFee,
@@ -70,7 +70,7 @@ contract RewardForwarder is Controllable {
                 );
             }
             if (_platformFee > 0) {
-                IUniversalLiquidatorV1(liquidator).swapTokens(
+                IUniversalLiquidator(liquidator).swap(
                     _token,
                     _targetToken,
                     _platformFee,
@@ -79,7 +79,7 @@ contract RewardForwarder is Controllable {
                 );
             }
             if (_profitSharingFee > 0) {
-                IUniversalLiquidatorV1(liquidator).swapTokens(
+                IUniversalLiquidator(liquidator).swap(
                     _token,
                     _targetToken,
                     _profitSharingFee,

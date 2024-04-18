@@ -1,5 +1,5 @@
 //SPDX-License-Identifier: Unlicense
-pragma solidity 0.6.12;
+pragma solidity 0.8.24;
 
 import "../interface/IController.sol";
 import "../inheritance/ControllableInit.sol";
@@ -57,7 +57,7 @@ contract BaseUpgradeableStrategyStorage is ControllableInit {
 
   bytes32 internal constant _STRATEGIST_SLOT = 0x6a7b588c950d46e2de3db2f157e5e0e4f29054c8d60f17bf0c30352e223a458d;
 
-  constructor() public {
+  constructor() {
     assert(_UNDERLYING_SLOT == bytes32(uint256(keccak256("eip1967.strategyStorage.underlying")) - 1));
     assert(_VAULT_SLOT == bytes32(uint256(keccak256("eip1967.strategyStorage.vault")) - 1));
     assert(_REWARD_TOKEN_SLOT == bytes32(uint256(keccak256("eip1967.strategyStorage.rewardToken")) - 1));
@@ -101,34 +101,34 @@ contract BaseUpgradeableStrategyStorage is ControllableInit {
     return getAddress(_REWARD_TOKEN_SLOT);
   }
 
-    function _setRewardTokens(address[] memory _rewardTokens) internal {
-        setAddressArray(_REWARD_TOKENS_SLOT, _rewardTokens);
-    }
+  function _setRewardTokens(address[] memory _rewardTokens) internal {
+    setAddressArray(_REWARD_TOKENS_SLOT, _rewardTokens);
+  }
 
-    function isRewardToken(address _token) public view returns (bool) {
-        return _isAddressInList(_token, rewardTokens());
-    }
+  function isRewardToken(address _token) public view returns (bool) {
+    return _isAddressInList(_token, rewardTokens());
+  }
 
-    function rewardTokens() public view returns (address[] memory) {
-        return getAddressArray(_REWARD_TOKENS_SLOT);
-    }
+  function rewardTokens() public view returns (address[] memory) {
+      return getAddressArray(_REWARD_TOKENS_SLOT);
+  }
 
-    function _isAddressInList(address _searchValue, address[] memory _list) internal pure returns (bool) {
-        for (uint i = 0; i < _list.length; i++) {
-            if (_list[i] == _searchValue) {
-                return true;
-            }
-        }
-        return false;
+  function _isAddressInList(address _searchValue, address[] memory _list) internal pure returns (bool) {
+    for (uint i = 0; i < _list.length; i++) {
+      if (_list[i] == _searchValue) {
+        return true;
+      }
     }
+    return false;
+  }
 
-    function _setStrategist(address _strategist) internal {
-        setAddress(_STRATEGIST_SLOT, _strategist);
-    }
+  function _setStrategist(address _strategist) internal {
+    setAddress(_STRATEGIST_SLOT, _strategist);
+  }
 
-    function strategist() public view returns (address) {
-        return getAddress(_STRATEGIST_SLOT);
-    }
+  function strategist() public view returns (address) {
+    return getAddress(_STRATEGIST_SLOT);
+  }
 
   function _setVault(address _address) internal {
     setAddress(_VAULT_SLOT, _address);
@@ -163,21 +163,25 @@ contract BaseUpgradeableStrategyStorage is ControllableInit {
     return getUint256(_SELL_FLOOR_SLOT);
   }
 
-    function profitSharingNumerator() public view returns (uint256) {
-        return IController(controller()).profitSharingNumerator();
-    }
+  function profitSharingNumerator() public view returns (uint256) {
+    return IController(controller()).profitSharingNumerator();
+  }
 
-    function platformFeeNumerator() public view returns (uint256) {
-        return IController(controller()).platformFeeNumerator();
-    }
+  function platformFeeNumerator() public view returns (uint256) {
+    return IController(controller()).platformFeeNumerator();
+  }
 
-    function strategistFeeNumerator() public view returns (uint256) {
-        return IController(controller()).strategistFeeNumerator();
-    }
+  function strategistFeeNumerator() public view returns (uint256) {
+    return IController(controller()).strategistFeeNumerator();
+  }
 
-    function feeDenominator() public view returns (uint256) {
-        return IController(controller()).feeDenominator();
-    }
+  function feeDenominator() public view returns (uint256) {
+    return IController(controller()).feeDenominator();
+  }
+
+  function universalLiquidator() public view returns (address) {
+    return IController(controller()).universalLiquidator();
+  }
 
   // upgradeability
 
@@ -237,50 +241,49 @@ contract BaseUpgradeableStrategyStorage is ControllableInit {
     }
   }
 
-      function setUint256Array(bytes32 slot, uint256[] memory _values) internal {
-        // solhint-disable-next-line no-inline-assembly
-        setUint256(slot, _values.length);
-        for (uint i = 0; i < _values.length; i++) {
-            setUint256(bytes32(uint(slot) + 1 + i), _values[i]);
-        }
+  function setUint256Array(bytes32 slot, uint256[] memory _values) internal {
+    // solhint-disable-next-line no-inline-assembly
+    setUint256(slot, _values.length);
+    for (uint i = 0; i < _values.length; i++) {
+        setUint256(bytes32(uint(slot) + 1 + i), _values[i]);
     }
+  }
 
-    function setAddressArray(bytes32 slot, address[] memory _values) internal {
-        // solhint-disable-next-line no-inline-assembly
-        setUint256(slot, _values.length);
-        for (uint i = 0; i < _values.length; i++) {
-            setAddress(bytes32(uint(slot) + 1 + i), _values[i]);
-        }
+  function setAddressArray(bytes32 slot, address[] memory _values) internal {
+    // solhint-disable-next-line no-inline-assembly
+    setUint256(slot, _values.length);
+    for (uint i = 0; i < _values.length; i++) {
+        setAddress(bytes32(uint(slot) + 1 + i), _values[i]);
     }
+  }
 
-
-    function getUint256Array(bytes32 slot) internal view returns (uint[] memory values) {
-        // solhint-disable-next-line no-inline-assembly
-        values = new uint[](getUint256(slot));
-        for (uint i = 0; i < values.length; i++) {
-            values[i] = getUint256(bytes32(uint(slot) + 1 + i));
-        }
+  function getUint256Array(bytes32 slot) internal view returns (uint[] memory values) {
+    // solhint-disable-next-line no-inline-assembly
+    values = new uint[](getUint256(slot));
+    for (uint i = 0; i < values.length; i++) {
+        values[i] = getUint256(bytes32(uint(slot) + 1 + i));
     }
+  }
 
-    function getAddressArray(bytes32 slot) internal view returns (address[] memory values) {
-        // solhint-disable-next-line no-inline-assembly
-        values = new address[](getUint256(slot));
-        for (uint i = 0; i < values.length; i++) {
-            values[i] = getAddress(bytes32(uint(slot) + 1 + i));
-        }
+  function getAddressArray(bytes32 slot) internal view returns (address[] memory values) {
+    // solhint-disable-next-line no-inline-assembly
+    values = new address[](getUint256(slot));
+    for (uint i = 0; i < values.length; i++) {
+        values[i] = getAddress(bytes32(uint(slot) + 1 + i));
     }
+  }
 
-    function setBytes32(bytes32 slot, bytes32 _value) internal {
-        // solhint-disable-next-line no-inline-assembly
-        assembly {
-        sstore(slot, _value)
-        }
+  function setBytes32(bytes32 slot, bytes32 _value) internal {
+    // solhint-disable-next-line no-inline-assembly
+    assembly {
+    sstore(slot, _value)
     }
+  }
 
-    function getBytes32(bytes32 slot) internal view returns (bytes32 str) {
-        // solhint-disable-next-line no-inline-assembly
-        assembly {
-        str := sload(slot)
-        }
+  function getBytes32(bytes32 slot) internal view returns (bytes32 str) {
+    // solhint-disable-next-line no-inline-assembly
+    assembly {
+    str := sload(slot)
     }
+  }
 }

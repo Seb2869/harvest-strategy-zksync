@@ -1,8 +1,8 @@
 // SPDX-License-Identifier: Unlicense
-pragma solidity 0.6.12;
+pragma solidity 0.8.24;
 
-import "@openzeppelin/contracts-upgradeable/math/SafeMathUpgradeable.sol";
-import "@openzeppelin/contracts-upgradeable/token/ERC20/SafeERC20Upgradeable.sol";
+import "@openzeppelin/contracts-upgradeable/utils/math/SafeMathUpgradeable.sol";
+import "@openzeppelin/contracts-upgradeable/token/ERC20/utils/SafeERC20Upgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/token/ERC20/IERC20Upgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/token/ERC20/ERC20Upgradeable.sol";
 import "../inheritance/Controllable.sol";
@@ -257,7 +257,7 @@ contract NotifyHelperStateful is Controllable {
   function addNotification(address poolAddress, uint256 percentage, NotificationType notificationType, bool vesting) internal {
     require(!notificationExists(poolAddress), "notification exists");
     require(percentage > 0, "notification is 0");
-    require(PotPool(poolAddress).getRewardTokenIndex(rewardToken) != uint256(-1), "Token not configured on pot pool");
+    require(PotPool(poolAddress).getRewardTokenIndex(rewardToken) != type(uint256).max, "Token not configured on pot pool");
     Notification memory notification = Notification(poolAddress, notificationType, percentage, vesting);
     notifications.push(notification);
     totalPercentage = totalPercentage.add(notification.percentage);
@@ -269,7 +269,7 @@ contract NotifyHelperStateful is Controllable {
   /// emergency draining of tokens and ETH as there should be none staying here
   function emergencyDrain(address token, uint256 amount) public onlyGovernance {
     if (token == address(0)) {
-      msg.sender.transfer(amount);
+      payable(msg.sender).transfer(amount);
     } else {
       IERC20Upgradeable(token).safeTransfer(msg.sender, amount);
     }

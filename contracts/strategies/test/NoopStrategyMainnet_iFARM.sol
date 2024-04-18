@@ -1,11 +1,11 @@
 //SPDX-License-Identifier: Unlicense
-pragma solidity 0.6.12;
+pragma solidity 0.8.24;
 
 import "../../base/noop/NoopStrategyUpgradeable.sol";
 
 contract NoopStrategyMainnet_iFARM is NoopStrategyUpgradeable {
 
-  constructor() public {}
+  constructor() {}
 
   function initializeStrategy(
     address _storage,
