@@ -9,12 +9,12 @@ const addresses = require("../test-config.js");
 const BigNumber = require("bignumber.js");
 const { zksyncEthers } = require("hardhat");
 
-const Strategy = "ZKSwapStrategyMainnet_ETH_USDCe";
+const Strategy = "ZKSwapStrategyMainnet_LONG_ETH";
 
 // Developed and tested at blockNumber 33964350
 
 // Vanilla Mocha test. Increased compatibility with tools that integrate Mocha.
-describe("ZKSync Mainnet zkSwap ETH-USDC.e", function() {
+describe("ZKSync Mainnet zkSwap LONG-ETH", function() {
   let gasPrice;
 
   // external contracts
@@ -23,7 +23,7 @@ describe("ZKSync Mainnet zkSwap ETH-USDC.e", function() {
   // external setup
   let zf = "0x31C2c031fDc9d33e974f327Ab0d9883Eae06cA4A";
   let weth = "0x5AEa5775959fBC2557Cc8789bC1bf90A239D9a91";
-  let usdce = "0x3355df6D4c9C3035724Fd0e3914dE96A5a83aaf4";
+  let long = "0x5165ec33b491d7b67260B3143f96Bb4aC4736398";
 
   // parties in the protocol
   let governance;
@@ -38,7 +38,7 @@ describe("ZKSync Mainnet zkSwap ETH-USDC.e", function() {
   let strategy;
 
   async function setupExternalContracts() {
-    underlying = await zksyncEthers.getContractAt("IERC20", "0x7642e38867860d4512Fcce1116e2Fb539c5cdd21");
+    underlying = await zksyncEthers.getContractAt("IERC20", "0xD32b34bc9690322c609c1cc15f88E440e73cE2dB");
     console.log("Fetching Underlying at: ", underlying.target);
   }
 
@@ -75,7 +75,7 @@ describe("ZKSync Mainnet zkSwap ETH-USDC.e", function() {
       "strategyArtifactIsUpgradable": true,
       "underlying": underlying,
       "governance": governance,
-      "liquidation": [{"zkSwap": [zf, weth]}, {"zkSwap": [zf, weth, usdce]}]
+      "liquidation": [{"zkSwap": [zf, weth]}, {"zkSwap": [zf, weth, long]}]
     });
 
     // whale send underlying to farmers

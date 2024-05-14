@@ -9,8 +9,8 @@ contract ControllableInit is GovernableInit {
   constructor() {
   }
 
-  function initialize(address _storage) public override initializer {
-    GovernableInit.initialize(_storage);
+  function initialize(address _store) public override initializer {
+    GovernableInit.initialize(_store);
   }
 
   modifier onlyController() {

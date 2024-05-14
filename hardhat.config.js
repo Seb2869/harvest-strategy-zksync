@@ -24,7 +24,7 @@ module.exports = {
       ethNetwork: `https://eth-mainnet.alchemyapi.io/v2/${secret.alchemyKey}`,
       forking: {
         url: `https://mainnet.era.zksync.io`,
-        // blockNumber: 31733639, // <-- edit here
+        // blockNumber: 32302450, // <-- edit here
       },
     },
     mainnet: {
@@ -40,6 +40,9 @@ module.exports = {
       url: "http://127.0.0.1:8011",
       ethNetwork: "", // in-memory node doesn't support eth node; removing this line will cause an error
       zksync: true,
+      accounts: {
+        mnemonic: secret.mnemonic,
+      },
     }
   },
   solidity: {

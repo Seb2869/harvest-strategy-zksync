@@ -1,9 +1,6 @@
 const makeVault = require("./make-vault.js");
 const addresses = require("../test-config.js");
-const IController = hre.artifacts.readArtifact("IController");
-const Vault = hre.artifacts.readArtifact("VaultV2");
 const IUpgradeableStrategy = hre.artifacts.readArtifact("IUpgradeableStrategy");
-const ILiquidatorRegistry = hre.artifacts.readArtifact("IUniversalLiquidatorRegistry");
 
 const Utils = require("./Utils.js");
 
@@ -24,17 +21,15 @@ async function setupCoreProtocol(config) {
   // Set vault (or Deploy new vault), underlying, underlying Whale,
   // amount the underlying whale should send to farmers
   if(config.existingVaultAddress != null){
-    vault = await zksyncEthers.getContractAt("VaultV2", config.existingVaultAddress);
+    vault = await hre.zksyncEthers.getContractAt("VaultV2", config.existingVaultAddress);
     console.log("Fetching Vault at: ", vault.target);
   } else {
     const implAddress = config.vaultImplementationOverride || addresses.VaultImplementation;
-    vault = await makeVault(implAddress, addresses.Storage, config.underlying.target, 100, 100, {
-      from: config.governance,
-    });
+    vault = await makeVault(implAddress, addresses.Storage, config.underlying.target, 100, 100);
     console.log("New Vault Deployed: ", vault.target);
   }
 
-  controller = await IController.at(addresses.Controller);
+  controller = await hre.zksyncEthers.getContractAt("IController", addresses.Controller, config.goverance);
 
   let rewardPool = null;
 
@@ -51,7 +46,7 @@ async function setupCoreProtocol(config) {
       console.log("reward pool needs to be deployed");
       rewardPool = await PotPool.new(
         rewardTokens,
-        vault.address,
+        vault.target,
         64800,
         rewardDistributions,
         addresses.Storage,
@@ -60,13 +55,13 @@ async function setupCoreProtocol(config) {
         18,
         {from: config.governance }
       );
-      console.log("New PotPool deployed: ", rewardPool.address);
+      console.log("New PotPool deployed: ", rewardPool.target);
     } else {
       const NoMintRewardPool = hre.artifacts.readArtifact("NoMintRewardPool");
       console.log("reward pool needs to be deployed");
       rewardPool = await NoMintRewardPool.new(
         rewardTokens[0],
-        vault.address,
+        vault.target,
         64800,
         rewardDistributions,
         addresses.Storage,
@@ -74,16 +69,16 @@ async function setupCoreProtocol(config) {
         "0x0000000000000000000000000000000000000000",
         {from: config.governance }
       );
-      console.log("New NoMintRewardPool deployed: ", rewardPool.address);
+      console.log("New NoMintRewardPool deployed: ", rewardPool.target);
     }
   } else if(config.existingRewardPoolAddress != null) {
     const PotPool = hre.artifacts.readArtifact("PotPool");
     rewardPool = await PotPool.at(config.existingRewardPoolAddress);
-    console.log("Fetching Reward Pool deployed: ", rewardPool.address);
+    console.log("Fetching Reward Pool deployed: ", rewardPool.target);
   }
 
-  let universalLiquidatorRegistry = await ILiquidatorRegistry.at(addresses.UniversalLiquidatorRegistry);
-
+  let universalLiquidatorRegistry = await hre.zksyncEthers.getContractAt("IUniversalLiquidatorRegistry", addresses.UniversalLiquidator.UniversalLiquidatorRegistry, config.governance);
+  
   // set liquidation paths
   if(config.liquidation) {
     for (i=0;i<config.liquidation.length;i++) {
@@ -91,62 +86,58 @@ async function setupCoreProtocol(config) {
       await universalLiquidatorRegistry.setPath(
         web3.utils.keccak256(dex),
         config.liquidation[i][dex],
-        {from: config.ULOwner}
+        {gasPrice: config.gasPrice}
       );
+      console.log("Set liquidation path:", config.liquidation[i])
     }
   }
 
   // default arguments are storage and vault addresses
   config.strategyArgs = config.strategyArgs || [
     addresses.Storage,
-    vault.address
+    vault.target
   ];
 
   for(i = 0; i < config.strategyArgs.length ; i++){
     if(config.strategyArgs[i] == "storageAddr") {
       config.strategyArgs[i] = addresses.Storage;
     } else if(config.strategyArgs[i] == "vaultAddr") {
-      config.strategyArgs[i] = vault.address;
+      config.strategyArgs[i] = vault.target;
     } else if(config.strategyArgs[i] == "poolAddr" ){
-      config.strategyArgs[i] = rewardPool.address;
+      config.strategyArgs[i] = rewardPool.target;
     } else if(config.strategyArgs[i] == "universalLiquidatorRegistryAddr"){
-      config.strategyArgs[i] = universalLiquidatorRegistry.address;
+      config.strategyArgs[i] = universalLiquidatorRegistry.target;
     }
   }
 
   let strategyImpl = null;
 
   if (!config.strategyArtifactIsUpgradable) {
-    strategy = await config.strategyArtifact.new(
-      ...config.strategyArgs,
-      { from: config.governance }
-    );
+    const strategyFact = await hre.zksyncEthers.getContractFactory(config.strategyArtifact);
+    strategy = await strategyFact.deploy(...config.strategyArgs);  
   } else {
-    strategyImpl = await config.strategyArtifact.new();
-    const StrategyProxy = hre.artifacts.readArtifact("StrategyProxy");
-
-    const strategyProxy = await StrategyProxy.new(strategyImpl.address);
-    strategy = await config.strategyArtifact.at(strategyProxy.address);
-    await strategy.initializeStrategy(
-      ...config.strategyArgs,
-      { from: config.governance }
-    );
+    const strategyFact = await hre.zksyncEthers.getContractFactory(config.strategyArtifact);
+    const strategyImpl = await strategyFact.deploy();
+    const proxyFact = await hre.zksyncEthers.getContractFactory("StrategyProxy");
+    const strategyProxy = await proxyFact.deploy(strategyImpl.target);
+    strategy = await hre.zksyncEthers.getContractAt(config.strategyArtifact, strategyProxy.target);
+    await strategy.initializeStrategy(...config.strategyArgs)
   }
 
-  console.log("Strategy Deployed: ", strategy.address);
+  console.log("Strategy Deployed: ", strategy.target);
 
   if (config.announceStrategy === true) {
     // Announce switch, time pass, switch to strategy
-    await vault.announceStrategyUpdate(strategy.address, { from: config.governance });
+    await vault.announceStrategyUpdate(strategy.target, { from: config.governance });
     console.log("Strategy switch announced. Waiting...");
     await Utils.waitHours(13);
-    await vault.setStrategy(strategy.address, { from: config.governance });
+    await vault.setStrategy(strategy.target, { from: config.governance });
     await vault.setVaultFractionToInvest(100, 100, { from: config.governance });
     console.log("Strategy switch completed.");
   } else if (config.upgradeStrategy === true) {
     // Announce upgrade, time pass, upgrade the strategy
     const strategyAsUpgradable = await IUpgradeableStrategy.at(await vault.strategy());
-    await strategyAsUpgradable.scheduleUpgrade(strategyImpl.address, { from: config.governance });
+    await strategyAsUpgradable.scheduleUpgrade(strategyImpl.target, { from: config.governance });
     console.log("Upgrade scheduled. Waiting...");
     await Utils.waitHours(13);
     await strategyAsUpgradable.upgrade({ from: config.governance });
@@ -154,20 +145,15 @@ async function setupCoreProtocol(config) {
     strategy = await config.strategyArtifact.at(await vault.strategy());
     console.log("Strategy upgrade completed.");
   } else {
-    await controller.addVaultAndStrategy(
-      vault.address,
-      strategy.address,
-      { from: config.governance }
-    );
-    console.log("Strategy and vault added to Controller.");
+    await vault.connect(config.governance).setStrategy(strategy.target, {gasPrice: config.gasPrice});
   }
 
   return [controller, vault, strategy, rewardPool];
 }
 
-async function depositVault(_farmer, _underlying, _vault, _amount) {
-  await _underlying.approve(_vault.address, _amount, { from: _farmer });
-  await _vault.deposit(_amount, { from: _farmer });
+async function depositVault(_farmer, _underlying, _vault, _amount, _gasPrice) {
+  await _underlying.connect(_farmer).approve(_vault.target, _amount.toFixed(), {gasPrice: _gasPrice});
+  await _vault.connect(_farmer).deposit(_amount.toFixed(), _farmer.address, {gasPrice: _gasPrice});
 }
 
 module.exports = {

@@ -38,7 +38,6 @@ contract ZKSwapStrategy is BaseUpgradeableStrategy {
     address _router,
     uint256 _poolID
   ) public initializer {
-
     BaseUpgradeableStrategy.initialize(
       _storage,
       _underlying,

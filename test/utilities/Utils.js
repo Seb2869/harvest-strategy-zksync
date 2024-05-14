@@ -2,6 +2,8 @@ const BigNumber = require('bignumber.js');
 const { time } = require("@openzeppelin/test-helpers");
 BigNumber.config({DECIMAL_PLACES: 0});
 
+const sleep = (delay) => new Promise((resolve) => setTimeout(resolve, delay))
+
 let gasLogger = {};
 let gasLoggerNum = {};
 
@@ -25,7 +27,7 @@ async function printGasLog() {
 
 async function advanceNBlock (n) {
   let startingBlock = await time.latestBlock();
-  await time.increase(2.3 * Math.round(n));
+  // await time.increase(1 * Math.round(n));
   let endBlock = startingBlock.addn(n);
   await time.advanceBlockTo(endBlock);
 }
@@ -93,4 +95,5 @@ module.exports = {
   waitHours,
   waitTime,
   assertBNGte,
+  sleep,
 };
