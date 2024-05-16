@@ -11,18 +11,14 @@ async function main() {
     const deployer = new Deployer(hre, wallet);
     
     const registry = await zksyncEthers.getContractAt("UniversalLiquidatorRegistry", addresses.UniversalLiquidator.UniversalLiquidatorRegistry);
-    const {dex, name} = await prompt.get(['dex', 'name']);
-
-    const Dex = await deployer.loadArtifact(dex);
-    const contract = await deployer.deploy(Dex);
-    const verificationId = await hre.run("verify:verify", {address: contract.target});
-    console.log("Verifying source code. Id:", verificationId);
-
-    const nameBytes = ethers.solidityPackedKeccak256(["bytes"], [ethers.toUtf8Bytes(name)]);
-    console.log(`${dex} id:`, nameBytes);
-    console.log(`${dex} address:`, contract.target);
-    await registry.addDex(nameBytes, contract.target);
-    console.log("Dex added to the Registry:", nameBytes, contract.target);
+    await registry.setPath(
+      "0x746a7e35f0e9af893aaa81941f48da6501a31965ca8691686d79c3d56c165cad",
+      [
+        "0x31C2c031fDc9d33e974f327Ab0d9883Eae06cA4A",
+        "0x5AEa5775959fBC2557Cc8789bC1bf90A239D9a91",
+        "0x703b52F2b28fEbcB60E1372858AF5b18849FE867",
+      ]
+    );
 }
 
 main()
