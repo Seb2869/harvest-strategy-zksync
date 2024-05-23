@@ -1,12 +1,15 @@
 node_modules
 
 #Hardhat files
+.cache
+.zksolc-libraries-cache
 cache
 cache-zk
 artifacts
 artifacts-zk
 deployments
 deployments-zk
+era_test_node.log
 
 scripts/core
 

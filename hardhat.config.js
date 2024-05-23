@@ -19,16 +19,16 @@ module.exports = {
       accounts: {
         mnemonic: secret.mnemonic,
       },
-      // chainId: 324,
+      chainId: 324,
       zksync: true,
       ethNetwork: `https://eth-mainnet.alchemyapi.io/v2/${secret.alchemyKey}`,
       forking: {
-        url: `https://mainnet.era.zksync.io`,
+        url: `https://zksync-mainnet.g.alchemy.com/v2/${secret.alchemyKey}`,
         // blockNumber: 32302450, // <-- edit here
       },
     },
     mainnet: {
-      url: `https://mainnet.era.zksync.io`,
+      url: `https://zksync-mainnet.g.alchemy.com/v2/${secret.alchemyKey}`,
       zksync: true,
       ethNetwork: `https://eth-mainnet.alchemyapi.io/v2/${secret.alchemyKey}`,
       accounts: {
@@ -59,7 +59,6 @@ module.exports = {
     ],
   },
   zksolc: {
-    // version: "latest",
     compilerSource: "binary",
     settings: {
       optimizer: {
