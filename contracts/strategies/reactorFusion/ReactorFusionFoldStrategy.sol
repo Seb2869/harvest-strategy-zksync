@@ -6,9 +6,9 @@ import "@openzeppelin/contracts/utils/math/SafeMath.sol";
 import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 import "../../base/interface/universalLiquidator/IUniversalLiquidator.sol";
 import "../../base/upgradability/BaseUpgradeableStrategy.sol";
-import "../../base/interface/reactorFusion/CTokenInterfaces.sol";
-import "../../base/interface/reactorFusion/Comptroller.sol";
-import "../../base/interface/reactorFusion/es33/RewardDistributor.sol";
+import "../../base/interface/reactorFusion/CTokenInterface.sol";
+import "../../base/interface/reactorFusion/IComptroller.sol";
+import "../../base/interface/reactorFusion/IRewardDistributor.sol";
 import "../../base/interface/weth/IWETH.sol";
 
 contract ReactorFusionFoldStrategy is BaseUpgradeableStrategy {
@@ -65,7 +65,7 @@ contract ReactorFusionFoldStrategy is BaseUpgradeableStrategy {
     );
 
     if (_underlying != weth) {
-      require(CErc20Interface(_cToken).underlying() == _underlying, "Underlying mismatch");
+      require(CTokenInterface(_cToken).underlying() == _underlying, "Underlying mismatch");
     }
 
     _setCToken(_cToken);
@@ -78,7 +78,7 @@ contract ReactorFusionFoldStrategy is BaseUpgradeableStrategy {
     setBoolean(_FOLD_SLOT, _fold);
     address[] memory markets = new address[](1);
     markets[0] = _cToken;
-    Comptroller(_comptroller).enterMarkets(markets);
+    IComptroller(_comptroller).enterMarkets(markets);
   }
 
   modifier updateSupplyInTheEnd() {
@@ -190,12 +190,12 @@ contract ReactorFusionFoldStrategy is BaseUpgradeableStrategy {
   function _claimRewards() internal {
     address _rewardPool = rewardPool();
     address _cToken = cToken();
-    bytes32 borrowSlot = RewardDistributor(payable(_rewardPool)).borrowSlot(_cToken);
-    bytes32 supplySlot = RewardDistributor(payable(_rewardPool)).supplySlot(_cToken);
+    bytes32 borrowSlot = IRewardDistributor(_rewardPool).borrowSlot(_cToken);
+    bytes32 supplySlot = IRewardDistributor(_rewardPool).supplySlot(_cToken);
     bytes32[] memory ids = new bytes32[](2);
     ids[0] = borrowSlot;
     ids[1] = supplySlot;
-    RewardDistributor(payable(_rewardPool)).harvest(ids);
+    IRewardDistributor(_rewardPool).harvest(ids);
   }
 
   function addRewardToken(address _token) public onlyGovernance {
@@ -263,11 +263,11 @@ contract ReactorFusionFoldStrategy is BaseUpgradeableStrategy {
     }
     if (_underlying == weth) {
       IWETH(weth).withdraw(balance);
-      CErc20Interface(_cToken).mint{value: balance}();
+      CTokenInterface(_cToken).mint{value: balance}();
     } else {
       IERC20(_underlying).safeApprove(_cToken, 0);
       IERC20(_underlying).safeApprove(_cToken, balance);
-      CErc20Interface(_cToken).mint(balance);
+      CTokenInterface(_cToken).mint(balance);
     }
   }
 
@@ -279,7 +279,7 @@ contract ReactorFusionFoldStrategy is BaseUpgradeableStrategy {
       return;
     }
     // Borrow, check the balance for this contract's address
-    CErc20Interface(cToken()).borrow(amountUnderlying);
+    CTokenInterface(cToken()).borrow(amountUnderlying);
     if(underlying() == weth){
       IWETH(weth).deposit{value: address(this).balance}();
     }
@@ -291,7 +291,7 @@ contract ReactorFusionFoldStrategy is BaseUpgradeableStrategy {
     if (amountUnderlying.mul(1e18) < exchange){
       return;
     }
-    CErc20Interface(cToken()).redeemUnderlying(amountUnderlying);
+    CTokenInterface(cToken()).redeemUnderlying(amountUnderlying);
     if(underlying() == weth){
       IWETH(weth).deposit{value: address(this).balance}();
     }
@@ -305,11 +305,11 @@ contract ReactorFusionFoldStrategy is BaseUpgradeableStrategy {
     address _cToken = cToken();
     if (_underlying == weth) {
       IWETH(weth).withdraw(amountUnderlying);
-      CErc20Interface(_cToken).repayBorrow{value: amountUnderlying}();
+      CTokenInterface(_cToken).repayBorrow{value: amountUnderlying}();
     } else {
       IERC20(_underlying).safeApprove(_cToken, 0);
       IERC20(_underlying).safeApprove(_cToken, amountUnderlying);
-      CErc20Interface(_cToken).repayBorrow(amountUnderlying);
+      CTokenInterface(_cToken).repayBorrow(amountUnderlying);
     }
   }
 
@@ -356,7 +356,7 @@ contract ReactorFusionFoldStrategy is BaseUpgradeableStrategy {
     uint256 balance = supplied.sub(borrowed);
     uint256 borrowTarget = balance.mul(_borrowNum).div(uint(1000).sub(_borrowNum));
     {
-      uint256 borrowCap = Comptroller(comptroller()).borrowCaps(_cToken);
+      uint256 borrowCap = IComptroller(comptroller()).borrowCaps(_cToken);
       uint256 totalBorrows = CTokenInterface(_cToken).totalBorrows();
       uint256 borrowAvail;
       if (totalBorrows < borrowCap) {
