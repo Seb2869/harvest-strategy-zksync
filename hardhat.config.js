@@ -59,6 +59,7 @@ module.exports = {
     ],
   },
   zksolc: {
+    version: "1.4.1",
     compilerSource: "binary",
     settings: {
       optimizer: {

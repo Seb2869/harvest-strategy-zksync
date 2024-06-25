@@ -341,14 +341,14 @@ contract ReactorFusionFoldStrategy is BaseUpgradeableStrategy {
     _depositNoFlash(supplied, borrowed, _cToken, _borrowNum);
   }
 
-  function _foldRedeem(uint256 amount, uint256 borrowTargetFactorNumerator) internal {
+  function _foldRedeem(uint256 amount, uint256 _borrowTargetFactorNumerator) internal {
     address _cToken = cToken();
     // amount we supplied
     uint256 supplied = CTokenInterface(_cToken).balanceOfUnderlying(address(this));
     // amount we borrowed
     uint256 borrowed = CTokenInterface(_cToken).borrowBalanceCurrent(address(this));
 
-    _redeemNoFlash(amount, supplied, borrowed, _cToken, borrowTargetFactorNumerator);
+    _redeemNoFlash(amount, supplied, borrowed, _cToken, _borrowTargetFactorNumerator);
   }
 
   function _depositNoFlash(uint256 supplied, uint256 borrowed, address _cToken, uint256 _borrowNum) internal {
@@ -359,7 +359,9 @@ contract ReactorFusionFoldStrategy is BaseUpgradeableStrategy {
       uint256 borrowCap = IComptroller(comptroller()).borrowCaps(_cToken);
       uint256 totalBorrows = CTokenInterface(_cToken).totalBorrows();
       uint256 borrowAvail;
-      if (totalBorrows < borrowCap) {
+      if (borrowCap == 0) {
+        borrowAvail = type(uint256).max;
+      } else if (totalBorrows < borrowCap) {
         borrowAvail = borrowCap.sub(totalBorrows).sub(1);
       } else {
         borrowAvail = 0;

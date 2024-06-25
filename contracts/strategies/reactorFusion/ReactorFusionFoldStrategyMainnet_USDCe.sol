@@ -24,9 +24,9 @@ contract ReactorFusionFoldStrategyMainnet_USDCe is ReactorFusionFoldStrategy {
       comptroller,
       rewards,
       rf,
-      0,
+      830,
       850,
-      false
+      true
     );
     rewardTokens = [rf];
   }
