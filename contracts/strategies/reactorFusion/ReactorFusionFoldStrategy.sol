@@ -355,6 +355,10 @@ contract ReactorFusionFoldStrategy is BaseUpgradeableStrategy {
     address _underlying = underlying();
     uint256 balance = supplied.sub(borrowed);
     uint256 borrowTarget = balance.mul(_borrowNum).div(uint(1000).sub(_borrowNum));
+    if (borrowed > borrowTarget) {
+      _redeemNoFlash(0, supplied, borrowed, _cToken, _borrowNum);
+      return;
+    }
     {
       uint256 borrowCap = IComptroller(comptroller()).borrowCaps(_cToken);
       uint256 totalBorrows = CTokenInterface(_cToken).totalBorrows();
@@ -381,7 +385,6 @@ contract ReactorFusionFoldStrategy is BaseUpgradeableStrategy {
       //update parameters
       borrowed = CTokenInterface(_cToken).borrowBalanceCurrent(address(this));
       supplied = CTokenInterface(_cToken).balanceOfUnderlying(address(this));
-      balance = supplied.sub(borrowed);
     }
   }
 
