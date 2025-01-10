@@ -131,7 +131,6 @@ contract ReactorFusionFoldStrategy is BaseUpgradeableStrategy {
 
   function _withdrawMaximum(bool claim) internal updateSupplyInTheEnd {
     if (claim) {
-      _claimRewards();
       _liquidateRewards();
     }
     _redeemMaximum();
@@ -159,7 +158,6 @@ contract ReactorFusionFoldStrategy is BaseUpgradeableStrategy {
   * Withdraws all assets, liquidates XVS, and invests again in the required ratio.
   */
   function doHardWork() public restricted {
-    _claimRewards();
     _liquidateRewards();
     _investAllUnderlying();
   }
@@ -185,17 +183,6 @@ contract ReactorFusionFoldStrategy is BaseUpgradeableStrategy {
     // To make sure that governance cannot come in and take away the coins
     require(!unsalvagableTokens(token), "token is defined as not salvagable");
     IERC20(token).safeTransfer(recipient, amount);
-  }
-
-  function _claimRewards() internal {
-    address _rewardPool = rewardPool();
-    address _cToken = cToken();
-    bytes32 borrowSlot = IRewardDistributor(_rewardPool).borrowSlot(_cToken);
-    bytes32 supplySlot = IRewardDistributor(_rewardPool).supplySlot(_cToken);
-    bytes32[] memory ids = new bytes32[](2);
-    ids[0] = borrowSlot;
-    ids[1] = supplySlot;
-    IRewardDistributor(_rewardPool).harvest(ids);
   }
 
   function addRewardToken(address _token) public onlyGovernance {

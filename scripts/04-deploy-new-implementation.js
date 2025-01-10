@@ -1,6 +1,6 @@
 const prompt = require('prompt');
 const hre = require("hardhat");
-const { Deployer } = require("@matterlabs/hardhat-zksync-deploy")
+const { Deployer } = require("@matterlabs/hardhat-zksync")
 
 async function main() {
   console.log("New implementation deployment.");

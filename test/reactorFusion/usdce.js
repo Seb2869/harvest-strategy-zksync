@@ -47,7 +47,7 @@ describe("ZKSync Mainnet ReactorFusion USDCe", function() {
 
     await setupExternalContracts();
     [controller, vault, strategy] = await setupCoreProtocol({
-      "gasPrice": gasPrice,
+      "gasPrice": gasPrice * BigInt(10),
       "existingVaultAddress": null,
       "strategyArtifact": Strategy,
       "strategyArtifactIsUpgradable": true,
@@ -72,6 +72,7 @@ describe("ZKSync Mainnet ReactorFusion USDCe", function() {
 
         oldSharePrice = new BigNumber(await vault.getPricePerFullShare());
         await controller.connect(governance).doHardWork(vault.target);
+        hre.zksyncEthers.provider.send("evm_mine");
         newSharePrice = new BigNumber(await vault.getPricePerFullShare());
 
         console.log("old shareprice: ", oldSharePrice.toFixed());
@@ -87,6 +88,7 @@ describe("ZKSync Mainnet ReactorFusion USDCe", function() {
         await Utils.advanceNBlock(blocksPerHour);
       }
       await vault.withdraw(new BigNumber(await vault.balanceOf(farmer1)).toFixed(), { from: farmer1 });
+      hre.zksyncEthers.provider.send("evm_mine");
       let farmerNewBalance = new BigNumber(await underlying.balanceOf(farmer1)).minus(farmerOldBalance);
       console.log("New balance:", farmerNewBalance.toFixed());
       Utils.assertBNGt(farmerNewBalance, farmerOldBalance);
@@ -99,7 +101,7 @@ describe("ZKSync Mainnet ReactorFusion USDCe", function() {
       console.log("APY:", (apy-1)*100, "%");
 
       await strategy.withdrawAllToVault({from:governance}); // making sure can withdraw all for a next switch
-
+      hre.zksyncEthers.provider.send("evm_mine");
     });
   });
 });

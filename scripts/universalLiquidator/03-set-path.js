@@ -14,9 +14,9 @@ async function main() {
     await registry.setPath(
       "0x746a7e35f0e9af893aaa81941f48da6501a31965ca8691686d79c3d56c165cad",
       [
-        "0x31C2c031fDc9d33e974f327Ab0d9883Eae06cA4A",
+        "0x5A7d6b2F92C77FAD6CCaBd7EE0624E64907Eaf3E",
         "0x5AEa5775959fBC2557Cc8789bC1bf90A239D9a91",
-        "0x703b52F2b28fEbcB60E1372858AF5b18849FE867",
+        "0x3355df6D4c9C3035724Fd0e3914dE96A5a83aaf4",
       ]
     );
 }

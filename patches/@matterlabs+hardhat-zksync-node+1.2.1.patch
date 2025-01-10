@@ -1,0 +1,20 @@
+diff --git a/node_modules/@matterlabs/hardhat-zksync-node/dist/utils.js b/node_modules/@matterlabs/hardhat-zksync-node/dist/utils.js
+index 1626580..cb5da53 100644
+--- a/node_modules/@matterlabs/hardhat-zksync-node/dist/utils.js
++++ b/node_modules/@matterlabs/hardhat-zksync-node/dist/utils.js
+@@ -110,13 +110,13 @@ function constructCommandArgs(args) {
+             throw new errors_1.ZkSyncNodePluginError(`Invalid fork network value: ${args.fork}`);
+         }
+         if (args.forkBlockNumber) {
+-            commandArgs.push('fork', args.fork, '--fork-at', args.forkBlockNumber.toString());
++            commandArgs.push('fork', '--fork-url', args.fork, '--fork-at', args.forkBlockNumber.toString());
+         }
+         else if (args.replayTx) {
+             commandArgs.push('replay_tx', args.fork, '--tx', args.replayTx);
+         }
+         else {
+-            commandArgs.push('fork', args.fork);
++            commandArgs.push('fork', '--fork-url', args.fork);
+         }
+     }
+     else {

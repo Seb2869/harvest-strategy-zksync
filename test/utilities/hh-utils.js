@@ -21,11 +21,11 @@ async function setupCoreProtocol(config) {
   // Set vault (or Deploy new vault), underlying, underlying Whale,
   // amount the underlying whale should send to farmers
   if(config.existingVaultAddress != null){
-    vault = await hre.zksyncEthers.getContractAt("VaultV2", config.existingVaultAddress);
+    vault = await hre.zksyncEthers.getContractAt("VaultV2", config.existingVaultAddress, config.governance);
     console.log("Fetching Vault at: ", vault.target);
   } else {
     const implAddress = config.vaultImplementationOverride || addresses.VaultImplementation;
-    vault = await makeVault(implAddress, addresses.Storage, config.underlying.target, 100, 100);
+    vault = await makeVault(implAddress, addresses.Storage, config.underlying.target, 100, 100, config.governance);
     console.log("New Vault Deployed: ", vault.target);
   }
 
@@ -78,7 +78,7 @@ async function setupCoreProtocol(config) {
   }
 
   let universalLiquidatorRegistry = await hre.zksyncEthers.getContractAt("IUniversalLiquidatorRegistry", addresses.UniversalLiquidator.UniversalLiquidatorRegistry, config.governance);
-  
+
   // set liquidation paths
   if(config.liquidation) {
     for (i=0;i<config.liquidation.length;i++) {
@@ -88,6 +88,7 @@ async function setupCoreProtocol(config) {
         config.liquidation[i][dex],
         {gasPrice: config.gasPrice}
       );
+      hre.zksyncEthers.provider.send("evm_mine");
       console.log("Set liquidation path:", config.liquidation[i])
     }
   }
@@ -113,15 +114,19 @@ async function setupCoreProtocol(config) {
   let strategyImpl = null;
 
   if (!config.strategyArtifactIsUpgradable) {
-    const strategyFact = await hre.zksyncEthers.getContractFactory(config.strategyArtifact);
-    strategy = await strategyFact.deploy(...config.strategyArgs);  
+    const strategyFact = await hre.zksyncEthers.getContractFactory(config.strategyArtifact, config.governance);
+    strategy = await strategyFact.deploy(...config.strategyArgs);
+    hre.zksyncEthers.provider.send("evm_mine");
   } else {
-    const strategyFact = await hre.zksyncEthers.getContractFactory(config.strategyArtifact);
+    const strategyFact = await hre.zksyncEthers.getContractFactory(config.strategyArtifact, config.governance);
     const strategyImpl = await strategyFact.deploy();
-    const proxyFact = await hre.zksyncEthers.getContractFactory("StrategyProxy");
+    hre.zksyncEthers.provider.send("evm_mine");
+    const proxyFact = await hre.zksyncEthers.getContractFactory("StrategyProxy", config.governance);
     const strategyProxy = await proxyFact.deploy(strategyImpl.target);
-    strategy = await hre.zksyncEthers.getContractAt(config.strategyArtifact, strategyProxy.target);
-    await strategy.initializeStrategy(...config.strategyArgs)
+    hre.zksyncEthers.provider.send("evm_mine");
+    strategy = await hre.zksyncEthers.getContractAt(config.strategyArtifact, strategyProxy.target, config.governance);
+    await strategy.initializeStrategy(...config.strategyArgs);
+    hre.zksyncEthers.provider.send("evm_mine");
   }
 
   console.log("Strategy Deployed: ", strategy.target);
@@ -146,6 +151,7 @@ async function setupCoreProtocol(config) {
     console.log("Strategy upgrade completed.");
   } else {
     await vault.connect(config.governance).setStrategy(strategy.target, {gasPrice: config.gasPrice});
+    hre.zksyncEthers.provider.send("evm_mine");
   }
 
   return [controller, vault, strategy, rewardPool];
@@ -153,7 +159,9 @@ async function setupCoreProtocol(config) {
 
 async function depositVault(_farmer, _underlying, _vault, _amount, _gasPrice) {
   await _underlying.connect(_farmer).approve(_vault.target, _amount.toFixed(), {gasPrice: _gasPrice});
+  hre.zksyncEthers.provider.send("evm_mine");
   await _vault.connect(_farmer).deposit(_amount.toFixed(), _farmer.address, {gasPrice: _gasPrice});
+  hre.zksyncEthers.provider.send("evm_mine");
 }
 
 module.exports = {

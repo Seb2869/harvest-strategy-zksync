@@ -4,6 +4,7 @@ pragma solidity 0.8.24;
 import "./BaseUpgradeableStrategyStorage.sol";
 import "../interface/IController.sol";
 import "../interface/IRewardForwarder.sol";
+import "../interface/merkl/IDistributor.sol";
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "@openzeppelin/contracts/utils/math/SafeMath.sol";
 import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
@@ -74,6 +75,10 @@ contract BaseUpgradeableStrategy is BaseUpgradeableStrategyStorage {
         && nextImplementation() != address(0),
       nextImplementation()
     );
+  }
+
+  function toggleMerklOperator(address merklClaim, address operator) external onlyGovernance {
+    IDistributor(merklClaim).toggleOperator(address(this), operator);
   }
 
   // ========================= Internal & Private Functions =========================

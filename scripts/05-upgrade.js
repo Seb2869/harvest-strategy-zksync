@@ -2,10 +2,10 @@ const prompt = require('prompt');
 
 async function main() {
     prompt.start();
-
     const {targetAddr} = await prompt.get(['targetAddr']);
 
-    const contract = await zksyncEthers.getContractAt("IUpgradeableStrategy", targetAddr);
+    const wallet = await zksyncEthers.getWallet()
+    const contract = await zksyncEthers.getContractAt("IUpgradeableStrategy", targetAddr, wallet);
     await contract.upgrade();
 }
 
