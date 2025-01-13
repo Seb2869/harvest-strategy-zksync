@@ -22,6 +22,10 @@ module.exports = {
       "zkSwap": {
         "hex": "0x746a7e35f0e9af893aaa81941f48da6501a31965ca8691686d79c3d56c165cad",
         "address": "0xbcA906cf83ecc33f41C82073677f91f6c4D98486"
+      },
+      "uniV3": {
+        "hex": "0x8f78a54cb77f4634a5bf3dd452ed6a2e33432c73821be59208661199511cd94f",
+        "address": "0x4CF4ce260E411a1bf55C16aaAE98FfF730D24b19"
       }
     }
   }

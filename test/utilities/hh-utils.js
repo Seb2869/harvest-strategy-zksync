@@ -93,6 +93,14 @@ async function setupCoreProtocol(config) {
     }
   }
 
+  if(config.uniV3Fee) {
+    const uniV3Dex = await hre.zksyncEthers.getContractAt("IDex", "0x4CF4ce260E411a1bf55C16aaAE98FfF730D24b19", config.governance);
+    for (i=0;i<config.uniV3Fee.length;i++) {
+      await uniV3Dex.setFee(config.uniV3Fee[i][0], config.uniV3Fee[i][1], config.uniV3Fee[i][2], {gasPrice: config.gasPrice});
+      hre.zksyncEthers.provider.send("evm_mine");
+    }
+  }
+
   // default arguments are storage and vault addresses
   config.strategyArgs = config.strategyArgs || [
     addresses.Storage,
@@ -121,12 +129,15 @@ async function setupCoreProtocol(config) {
     const strategyFact = await hre.zksyncEthers.getContractFactory(config.strategyArtifact, config.governance);
     const strategyImpl = await strategyFact.deploy();
     hre.zksyncEthers.provider.send("evm_mine");
+    console.log("Strategy Implementation deployed.");
     const proxyFact = await hre.zksyncEthers.getContractFactory("StrategyProxy", config.governance);
     const strategyProxy = await proxyFact.deploy(strategyImpl.target);
     hre.zksyncEthers.provider.send("evm_mine");
+    console.log("Strategy Proxy deployed.")
     strategy = await hre.zksyncEthers.getContractAt(config.strategyArtifact, strategyProxy.target, config.governance);
     await strategy.initializeStrategy(...config.strategyArgs);
     hre.zksyncEthers.provider.send("evm_mine");
+    console.log("Strategy initialized.")
   }
 
   console.log("Strategy Deployed: ", strategy.target);

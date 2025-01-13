@@ -10,13 +10,13 @@ async function main() {
     const wallet = await zksyncEthers.getWallet()
     const deployer = new Deployer(hre, wallet);
     
-    const registry = await zksyncEthers.getContractAt("UniversalLiquidatorRegistry", addresses.UniversalLiquidator.UniversalLiquidatorRegistry);
+    const registry = await zksyncEthers.getContractAt("UniversalLiquidatorRegistry", addresses.UniversalLiquidator.UniversalLiquidatorRegistry, wallet);
     const {dex, name} = await prompt.get(['dex', 'name']);
 
     const Dex = await deployer.loadArtifact(dex);
     const contract = await deployer.deploy(Dex);
-    const verificationId = await hre.run("verify:verify", {address: contract.target});
-    console.log("Verifying source code. Id:", verificationId);
+    // const verificationId = await hre.run("verify:verify", {address: contract.target});
+    // console.log("Verifying source code. Id:", verificationId);
 
     const nameBytes = ethers.solidityPackedKeccak256(["bytes"], [ethers.toUtf8Bytes(name)]);
     console.log(`${dex} id:`, nameBytes);
