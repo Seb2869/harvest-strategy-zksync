@@ -24,6 +24,12 @@ contract ZKSwapStrategy is BaseUpgradeableStrategy {
   // this would be reset on each upgrade
   address[] public rewardTokens;
 
+  uint256 public zkBalanceStart;
+  uint256 public zkBalanceLast;
+  uint256 public lastRewardTime;
+  uint256 public zkPerSec;
+  address public constant zk = address(0x5A7d6b2F92C77FAD6CCaBd7EE0624E64907Eaf3E);
+
   constructor() BaseUpgradeableStrategy() {
     assert(_POOLID_SLOT == bytes32(uint256(keccak256("eip1967.strategyStorage.poolId")) - 1));
     assert(_ROUTER_SLOT == bytes32(uint256(keccak256("eip1967.strategyStorage.router")) - 1));
@@ -128,18 +134,24 @@ contract ZKSwapStrategy is BaseUpgradeableStrategy {
     address _universalLiquidator = universalLiquidator();
     for(uint256 i = 0; i < rewardTokens.length; i++){
       address token = rewardTokens[i];
-      uint256 rewardBalance = IERC20(token).balanceOf(address(this));
-      if (rewardBalance == 0) {
-        continue;
+      uint256 balance = IERC20(token).balanceOf(address(this));
+      if (token == zk) {
+        if (balance > zkBalanceLast) {
+          _updateZkDist(balance);
+        }
+        balance = _getZkAmt();
       }
-      if (token != _rewardToken){
+      if (balance > 0 && token != _rewardToken){
         IERC20(token).safeApprove(_universalLiquidator, 0);
-        IERC20(token).safeApprove(_universalLiquidator, rewardBalance);
-        IUniversalLiquidator(_universalLiquidator).swap(token, _rewardToken, rewardBalance, 1, address(this));
+        IERC20(token).safeApprove(_universalLiquidator, balance);
+        IUniversalLiquidator(_universalLiquidator).swap(token, _rewardToken, balance, 1, address(this));
       }
     }
 
     uint256 rewardBalance = IERC20(_rewardToken).balanceOf(address(this));
+    if (rewardBalance < 1e12) {
+      return;
+    }
     _notifyProfitInRewardToken(_rewardToken, rewardBalance);
     uint256 remainingRewardBalance = IERC20(_rewardToken).balanceOf(address(this));
 
@@ -192,6 +204,21 @@ contract ZKSwapStrategy is BaseUpgradeableStrategy {
       address(this),
       block.timestamp
     );
+  }
+
+  function _updateZkDist(uint256 balance) internal {
+    zkBalanceStart = balance;
+    zkBalanceLast = balance;
+    lastRewardTime = block.timestamp.sub(86400);
+    zkPerSec = balance.div(691200);
+  }
+
+  function _getZkAmt() internal returns (uint256) {
+    uint256 balance = IERC20(zk).balanceOf(address(this));
+    uint256 earned = Math.min(block.timestamp.sub(lastRewardTime).mul(zkPerSec), balance);
+    zkBalanceLast = balance.sub(earned);
+    lastRewardTime = block.timestamp;
+    return earned;
   }
 
   /*
@@ -289,5 +316,9 @@ contract ZKSwapStrategy is BaseUpgradeableStrategy {
 
   function finalizeUpgrade() external onlyGovernance {
     _finalizeUpgrade();
+    zkBalanceStart = 0;
+    zkBalanceLast = 0;
+    lastRewardTime = 0;
+    zkPerSec = 0;
   }
 }
