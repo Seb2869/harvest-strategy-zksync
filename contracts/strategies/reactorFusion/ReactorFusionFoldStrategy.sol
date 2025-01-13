@@ -8,7 +8,6 @@ import "../../base/interface/universalLiquidator/IUniversalLiquidator.sol";
 import "../../base/upgradability/BaseUpgradeableStrategy.sol";
 import "../../base/interface/reactorFusion/CTokenInterface.sol";
 import "../../base/interface/reactorFusion/IComptroller.sol";
-import "../../base/interface/reactorFusion/IRewardDistributor.sol";
 import "../../base/interface/weth/IWETH.sol";
 
 contract ReactorFusionFoldStrategy is BaseUpgradeableStrategy {
@@ -32,6 +31,12 @@ contract ReactorFusionFoldStrategy is BaseUpgradeableStrategy {
 
   // this would be reset on each upgrade
   address[] public rewardTokens;
+
+  uint256 internal zkBalanceStart;
+  uint256 internal zkBalanceLast;
+  uint256 internal lastRewardTime;
+  uint256 internal zkPerSec;
+  address internal constant zk = address(0x5A7d6b2F92C77FAD6CCaBd7EE0624E64907Eaf3E);
 
   constructor() BaseUpgradeableStrategy() {
     assert(_CTOKEN_SLOT == bytes32(uint256(keccak256("eip1967.strategyStorage.cToken")) - 1));
@@ -200,13 +205,16 @@ contract ReactorFusionFoldStrategy is BaseUpgradeableStrategy {
     for (uint256 i; i < rewardTokens.length; i++) {
       address token = rewardTokens[i];
       uint256 balance = IERC20(token).balanceOf(address(this));
-      if (balance == 0) {
-          continue;
+      if (token == zk) {
+        if (balance > zkBalanceLast) {
+          _updateZkDist(balance);
+        }
+        balance = _getZkAmt();
       }
-      if (token != _rewardToken){
-          IERC20(token).safeApprove(_universalLiquidator, 0);
-          IERC20(token).safeApprove(_universalLiquidator, balance);
-          IUniversalLiquidator(_universalLiquidator).swap(token, _rewardToken, balance, 1, address(this));
+      if (balance > 0 && token != _rewardToken){
+        IERC20(token).safeApprove(_universalLiquidator, 0);
+        IERC20(token).safeApprove(_universalLiquidator, balance);
+        IUniversalLiquidator(_universalLiquidator).swap(token, _rewardToken, balance, 1, address(this));
       }
     }
     uint256 rewardBalance = IERC20(_rewardToken).balanceOf(address(this));
@@ -223,6 +231,21 @@ contract ReactorFusionFoldStrategy is BaseUpgradeableStrategy {
       IERC20(_rewardToken).safeApprove(_universalLiquidator, remainingRewardBalance);
       IUniversalLiquidator(_universalLiquidator).swap(_rewardToken, _underlying, remainingRewardBalance, 1, address(this));
     }
+  }
+
+  function _updateZkDist(uint256 balance) internal {
+    zkBalanceStart = balance;
+    zkBalanceLast = balance;
+    lastRewardTime = block.timestamp.sub(86400);
+    zkPerSec = balance.div(691200);
+  }
+
+  function _getZkAmt() internal returns (uint256) {
+    uint256 balance = IERC20(zk).balanceOf(address(this));
+    uint256 earned = Math.min(block.timestamp.sub(lastRewardTime).mul(zkPerSec), balance);
+    zkBalanceLast = balance.sub(earned);
+    lastRewardTime = block.timestamp;
+    return earned;
   }
 
   /**
