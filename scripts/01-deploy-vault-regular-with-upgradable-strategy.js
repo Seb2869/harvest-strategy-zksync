@@ -20,12 +20,12 @@ async function main() {
   const deployer = new Deployer(hre, wallet);
 
   const {id, underlying, strategyName} = await prompt.get(['id', 'underlying', 'strategyName']);
-  const factory = await zksyncEthers.getContractAt("MegaFactory", addresses.Factory.MegaFactory);
+  const factory = await zksyncEthers.getContractAt("MegaFactory", addresses.Factory.MegaFactory, wallet);
 
   const StrategyImpl = await deployer.loadArtifact(strategyName);
   const impl = await deployer.deploy(StrategyImpl);
-  const verificationId = await hre.run("verify:verify", {address: impl.target});
-  console.log("Verifying source code. Id:", verificationId);
+  // const verificationId = await hre.run("verify:verify", {address: impl.target});
+  // console.log("Verifying source code. Id:", verificationId);
 
   console.log("Implementation deployed at:", impl.target);
 

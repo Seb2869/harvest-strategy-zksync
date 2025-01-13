@@ -20,14 +20,22 @@ contract SyncSwapStrategy is BaseUpgradeableStrategy {
   bytes32 internal constant _DEPOSIT_TOKEN_SLOT = 0x219270253dbc530471c88a9e7c321b36afda219583431e7b6c386d2d46e70c86;
   bytes32 internal constant _ROUTER_SLOT = 0xc4bc41765b1e3f3fee6c9fdf0e8be35cc927fe7657e9189710451b83e4bf5b3e;
   bytes32 internal constant _USE_VAULT_SLOT = 0x4d5f82bc63870087e266f31bd63152445b69568bc578159eba0d0c339a764c3a;
+  bytes32 internal constant _STAKE = 0x175ebcf75a7460f502cd8d8fc681df48f74de0f69d9368c454d23e8d7f9458f6;
 
   // this would be reset on each upgrade
   address[] public rewardTokens;
+
+  uint256 public zkBalanceStart;
+  uint256 public zkBalanceLast;
+  uint256 public lastRewardTime;
+  uint256 public zkPerSec;
+  address public constant zk = address(0x5A7d6b2F92C77FAD6CCaBd7EE0624E64907Eaf3E);
 
   constructor() BaseUpgradeableStrategy() {
     assert(_DEPOSIT_TOKEN_SLOT == bytes32(uint256(keccak256("eip1967.strategyStorage.depositToken")) - 1));
     assert(_ROUTER_SLOT == bytes32(uint256(keccak256("eip1967.strategyStorage.router")) - 1));
     assert(_USE_VAULT_SLOT == bytes32(uint256(keccak256("eip1967.strategyStorage.useVault")) - 1));
+    assert(_STAKE == bytes32(uint256(keccak256("eip1967.strategyStorage.stake")) - 1));
   }
 
   function initializeBaseStrategy(
@@ -49,8 +57,10 @@ contract SyncSwapStrategy is BaseUpgradeableStrategy {
       harvestMSIG
     );
 
-    address _lpt = IStakingPool(rewardPool()).shareToken();
-    require(_lpt == _underlying, "Underlying mismatch");
+    if (rewardPool() != address(0)) {
+      address _lpt = IStakingPool(rewardPool()).shareToken();
+      require(_lpt == _underlying, "Underlying mismatch");
+    }
 
     _setDepositToken(_depositToken);
     _setRouter(_router);
@@ -62,7 +72,11 @@ contract SyncSwapStrategy is BaseUpgradeableStrategy {
   }
 
   function _rewardPoolBalance() internal view returns (uint256 balance) {
-    balance = IStakingPool(rewardPool()).userStaked(address(this));
+    if (rewardPool() == address(0)) {
+      balance = 0;
+    } else {
+      balance = IStakingPool(rewardPool()).userStaked(address(this));
+    }
   }
 
   function _emergencyExitRewardPool() internal {
@@ -90,7 +104,7 @@ contract SyncSwapStrategy is BaseUpgradeableStrategy {
   function _investAllUnderlying() internal onlyNotPausedInvesting {
     // this check is needed, because most of the SNX reward pools will revert if
     // you try to stake(0).
-    if(IERC20(underlying()).balanceOf(address(this)) > 0) {
+    if(IERC20(underlying()).balanceOf(address(this)) > 0 && stake()) {
       _enterRewardPool();
     }
   }
@@ -131,19 +145,22 @@ contract SyncSwapStrategy is BaseUpgradeableStrategy {
     address _universalLiquidator = universalLiquidator();
     for(uint256 i = 0; i < rewardTokens.length; i++){
       address token = rewardTokens[i];
-      uint256 rewardBalance = IERC20(token).balanceOf(address(this));
-      if (rewardBalance == 0) {
-        continue;
+      uint256 balance = IERC20(token).balanceOf(address(this));
+      if (token == zk) {
+        if (balance > zkBalanceLast) {
+          _updateZkDist(balance);
+        }
+        balance = _getZkAmt();
       }
-      if (token != _rewardToken){
+      if (balance > 0 && token != _rewardToken){
         IERC20(token).safeApprove(_universalLiquidator, 0);
-        IERC20(token).safeApprove(_universalLiquidator, rewardBalance);
-        IUniversalLiquidator(_universalLiquidator).swap(token, _rewardToken, rewardBalance, 1, address(this));
+        IERC20(token).safeApprove(_universalLiquidator, balance);
+        IUniversalLiquidator(_universalLiquidator).swap(token, _rewardToken, balance, 1, address(this));
       }
     }
 
     uint256 rewardBalance = IERC20(_rewardToken).balanceOf(address(this));
-    if (rewardBalance < 1e10) {
+    if (rewardBalance < 1e12) {
       return;
     }
     _notifyProfitInRewardToken(_rewardToken, rewardBalance);
@@ -182,6 +199,21 @@ contract SyncSwapStrategy is BaseUpgradeableStrategy {
       bytes("0"),
       address(0)
     );
+  }
+
+  function _updateZkDist(uint256 balance) internal {
+    zkBalanceStart = balance;
+    zkBalanceLast = balance;
+    lastRewardTime = block.timestamp.sub(86400);
+    zkPerSec = balance.div(691200);
+  }
+
+  function _getZkAmt() internal returns (uint256) {
+    uint256 balance = IERC20(zk).balanceOf(address(this));
+    uint256 earned = Math.min(block.timestamp.sub(lastRewardTime).mul(zkPerSec), balance);
+    zkBalanceLast = balance.sub(earned);
+    lastRewardTime = block.timestamp;
+    return earned;
   }
 
   /*
@@ -247,7 +279,9 @@ contract SyncSwapStrategy is BaseUpgradeableStrategy {
   *   when the investing is being paused by governance.
   */
   function doHardWork() external onlyNotPausedInvesting restricted {
-    IStakingPool(rewardPool()).claimRewards(address(this), uint8(1), bytes("0"));
+    if (rewardPool() != address(0)) {
+      IStakingPool(rewardPool()).claimRewards(address(this), uint8(1), bytes("0"));
+    }
     _liquidateReward();
     _investAllUnderlying();
   }
@@ -282,6 +316,24 @@ contract SyncSwapStrategy is BaseUpgradeableStrategy {
 
   function useVault() public view returns (bool) {
     return getBoolean(_USE_VAULT_SLOT);
+  }
+
+  function setStake(bool _value) public onlyGovernance {
+    if (_value) {
+      require(rewardPool() != address(0), "No rewardpool set");
+      _enterRewardPool();
+    } else {
+      _emergencyExitRewardPool();
+    }
+    setBoolean(_STAKE, _value);
+  }
+
+  function stake() public view returns (bool) {
+    return getBoolean(_STAKE);
+  }
+
+  function setRewardPool(address pool) external onlyGovernance {
+    _setRewardPool(pool);
   }
 
   function finalizeUpgrade() external onlyGovernance {
