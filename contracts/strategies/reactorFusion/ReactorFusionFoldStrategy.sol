@@ -477,6 +477,10 @@ contract ReactorFusionFoldStrategy is BaseUpgradeableStrategy {
 
   function finalizeUpgrade() external onlyGovernance updateSupplyInTheEnd {
     _finalizeUpgrade();
+    zkBalanceStart = 0;
+    zkBalanceLast = 0;
+    lastRewardTime = 0;
+    zkPerSec = 0;
   }
 
   receive() external payable {}

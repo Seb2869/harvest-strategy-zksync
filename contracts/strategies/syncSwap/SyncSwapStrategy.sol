@@ -338,5 +338,9 @@ contract SyncSwapStrategy is BaseUpgradeableStrategy {
 
   function finalizeUpgrade() external onlyGovernance {
     _finalizeUpgrade();
+    zkBalanceStart = 0;
+    zkBalanceLast = 0;
+    lastRewardTime = 0;
+    zkPerSec = 0;
   }
 }
