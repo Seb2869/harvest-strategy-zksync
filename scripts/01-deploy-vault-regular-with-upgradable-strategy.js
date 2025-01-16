@@ -24,10 +24,10 @@ async function main() {
 
   const StrategyImpl = await deployer.loadArtifact(strategyName);
   const impl = await deployer.deploy(StrategyImpl);
+  console.log("Implementation deployed at:", impl.target);
+
   // const verificationId = await hre.run("verify:verify", {address: impl.target});
   // console.log("Verifying source code. Id:", verificationId);
-
-  console.log("Implementation deployed at:", impl.target);
 
   await factory.createRegularVaultUsingUpgradableStrategy(id, underlying, impl.target)
 

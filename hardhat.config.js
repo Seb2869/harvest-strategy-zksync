@@ -34,7 +34,8 @@ module.exports = {
       accounts: {
         mnemonic: secret.mnemonic,
       },
-      verifyURL: 'https://zksync2-mainnet-explorer.zksync.io/contract_verification'
+      verifyURL: 'https://zksync2-mainnet-explorer.zksync.io/contract_verification',
+      enableVerifyURL: true,
     },
     local: {
       url: "http://127.0.0.1:8011",
@@ -78,19 +79,7 @@ module.exports = {
     runOnCompile: false,
     strict: false,
   },
-  etherscan: {
-    apiKey: {
-      zksync: secret.etherscanAPI,
-    },
-    customChains: [
-      {
-        network: "zksync",
-        chainId: 324,
-        urls: {
-          apiURL: "https://api-era.zksync.network/api",
-          browserURL: "https://era.zksync.network/"
-        }
-      }
-    ]
-  },
+  // etherscan: {
+  //   apiKey: secret.etherscanAPI,
+  // },
 };
