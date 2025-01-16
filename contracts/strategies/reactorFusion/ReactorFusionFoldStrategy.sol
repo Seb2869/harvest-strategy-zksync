@@ -21,6 +21,8 @@ contract ReactorFusionFoldStrategy is BaseUpgradeableStrategy {
   // additional storage slots (on top of BaseUpgradeableStrategy ones) are defined here
   bytes32 internal constant _CTOKEN_SLOT = 0x316ad921d519813e6e41c0e056b79e4395192c2b101f8b61cf5b94999360d568;
   bytes32 internal constant _COMPTROLLER_SLOT = 0x21864471ca9d8b67bc7f58951fb160897ce623fdb405c56534d08a363a47e235;
+  bytes32 internal constant _STORED_SUPPLIED_SLOT = 0x280539da846b4989609abdccfea039bd1453e4f710c670b29b9eeaca0730c1a2;
+  bytes32 internal constant _PENDING_FEE_SLOT = 0x0af7af9f5ccfa82c3497f40c7c382677637aee27293a6243a22216b51481bd97;
   bytes32 internal constant _COLLATERALFACTORNUMERATOR_SLOT = 0x129eccdfbcf3761d8e2f66393221fa8277b7623ad13ed7693a0025435931c64a;
   bytes32 internal constant _FACTORDENOMINATOR_SLOT = 0x4e92df66cc717205e8df80bec55fc1429f703d590a2d456b97b74f0008b4a3ee;
   bytes32 internal constant _BORROWTARGETFACTORNUMERATOR_SLOT = 0xa65533f4b41f3786d877c8fdd4ae6d27ada84e1d9c62ea3aca309e9aa03af1cd;
@@ -32,15 +34,16 @@ contract ReactorFusionFoldStrategy is BaseUpgradeableStrategy {
   // this would be reset on each upgrade
   address[] public rewardTokens;
 
-  uint256 internal zkBalanceStart;
-  uint256 internal zkBalanceLast;
-  uint256 internal lastRewardTime;
-  uint256 internal zkPerSec;
-  address internal constant zk = address(0x5A7d6b2F92C77FAD6CCaBd7EE0624E64907Eaf3E);
+  uint256 public zkBalanceLast;
+  uint256 public lastRewardTime;
+  uint256 public zkPerSec;
+  address public constant zk = address(0x5A7d6b2F92C77FAD6CCaBd7EE0624E64907Eaf3E);
 
   constructor() BaseUpgradeableStrategy() {
     assert(_CTOKEN_SLOT == bytes32(uint256(keccak256("eip1967.strategyStorage.cToken")) - 1));
     assert(_COMPTROLLER_SLOT == bytes32(uint256(keccak256("eip1967.strategyStorage.comptroller")) - 1));
+    assert(_STORED_SUPPLIED_SLOT == bytes32(uint256(keccak256("eip1967.strategyStorage.storedSupplied")) - 1));
+    assert(_PENDING_FEE_SLOT == bytes32(uint256(keccak256("eip1967.strategyStorage.pendingFee")) - 1));
     assert(_COLLATERALFACTORNUMERATOR_SLOT == bytes32(uint256(keccak256("eip1967.strategyStorage.collateralFactorNumerator")) - 1));
     assert(_FACTORDENOMINATOR_SLOT == bytes32(uint256(keccak256("eip1967.strategyStorage.factorDenominator")) - 1));
     assert(_BORROWTARGETFACTORNUMERATOR_SLOT == bytes32(uint256(keccak256("eip1967.strategyStorage.borrowTargetFactorNumerator")) - 1));
@@ -53,7 +56,6 @@ contract ReactorFusionFoldStrategy is BaseUpgradeableStrategy {
     address _vault,
     address _cToken,
     address _comptroller,
-    address _rewardDistributor,
     address _rewardToken,
     uint256 _borrowTargetFactorNumerator,
     uint256 _collateralFactorNumerator,
@@ -64,7 +66,7 @@ contract ReactorFusionFoldStrategy is BaseUpgradeableStrategy {
       _storage,
       _underlying,
       _vault,
-      _rewardDistributor,
+      _comptroller,
       _rewardToken,
       harvestMSIG
     );
@@ -86,15 +88,57 @@ contract ReactorFusionFoldStrategy is BaseUpgradeableStrategy {
     IComptroller(_comptroller).enterMarkets(markets);
   }
 
-  modifier updateSupplyInTheEnd() {
-    _;
+  function currentBalance() public returns (uint256) {
     address _cToken = cToken();
     // amount we supplied
-    suppliedInUnderlying = CTokenInterface(_cToken).balanceOfUnderlying(address(this));
+    uint256 supplied = CTokenInterface(_cToken).balanceOfUnderlying(address(this));
     // amount we borrowed
-    borrowedInUnderlying = CTokenInterface(_cToken).borrowBalanceCurrent(address(this));
+    uint256 borrowed = CTokenInterface(_cToken).borrowBalanceCurrent(address(this));
+    return supplied.sub(borrowed);
   }
 
+  function storedBalance() public view returns (uint256) {
+    return getUint256(_STORED_SUPPLIED_SLOT);
+  }
+
+  function _updateStoredBalance() internal {
+    uint256 balance = currentBalance();
+    setUint256(_STORED_SUPPLIED_SLOT, balance);
+  }
+
+  function totalFeeNumerator() public view returns (uint256) {
+    return strategistFeeNumerator().add(platformFeeNumerator()).add(profitSharingNumerator());
+  }
+
+  function pendingFee() public view returns (uint256) {
+    return getUint256(_PENDING_FEE_SLOT);
+  }
+
+  function _accrueFee() internal {
+    uint256 fee;
+    if (currentBalance() > storedBalance()) {
+      uint256 balanceIncrease = currentBalance().sub(storedBalance());
+      fee = balanceIncrease.mul(totalFeeNumerator()).div(feeDenominator());
+    }
+    setUint256(_PENDING_FEE_SLOT, pendingFee().add(fee));
+    _updateStoredBalance();
+  }
+
+  function _handleFee() internal {
+    _accrueFee();
+    uint256 fee = pendingFee();
+    if (fee > 100) {
+      uint256 balanceIncrease = fee.mul(feeDenominator()).div(totalFeeNumerator());
+      _redeem(fee);
+      address _underlying = underlying();
+      if (IERC20(_underlying).balanceOf(address(this)) < fee) {
+        balanceIncrease = IERC20(_underlying).balanceOf(address(this)).mul(feeDenominator()).div(totalFeeNumerator());
+      }
+      _notifyProfitInRewardToken(_underlying, balanceIncrease);
+      setUint256(_PENDING_FEE_SLOT, 0);
+    }
+  }
+  
   function depositArbCheck() public pure returns (bool) {
     // there's no arb here.
     return true;
@@ -107,43 +151,63 @@ contract ReactorFusionFoldStrategy is BaseUpgradeableStrategy {
   /**
   * The strategy invests by supplying the underlying as a collateral.
   */
-  function _investAllUnderlying() internal onlyNotPausedInvesting updateSupplyInTheEnd {
+  function _investAllUnderlying() internal onlyNotPausedInvesting {
     address _underlying = underlying();
     uint256 underlyingBalance = IERC20(_underlying).balanceOf(address(this));
     if (underlyingBalance > 0) {
+      if (_underlying == zk) {
+        underlyingBalance = underlyingBalance.sub(zkBalanceLast);
+      }
       _supply(underlyingBalance);
     }
-    if (!fold()) {
-      return;
+    if (fold()) {
+      _depositNoFlash();
     }
-    _foldDeposit();
   }
 
   /**
   * Exits Moonwell and transfers everything to the vault.
   */
-  function withdrawAllToVault() public restricted updateSupplyInTheEnd {
+  function withdrawAllToVault() public restricted {
     address _underlying = underlying();
     _withdrawMaximum(true);
-    if (IERC20(_underlying).balanceOf(address(this)) > 0) {
-      IERC20(_underlying).safeTransfer(vault(), IERC20(_underlying).balanceOf(address(this)));
+    uint256 balance = IERC20(_underlying).balanceOf(address(this));
+    if (balance > 0) {
+      if (_underlying == zk) {
+        balance = balance.sub(zkBalanceLast);
+      }
+      IERC20(_underlying).safeTransfer(vault(), balance);
     }
+    _updateStoredBalance();
   }
 
-  function emergencyExit() external onlyGovernance updateSupplyInTheEnd {
+  function emergencyExit() external onlyGovernance {
     _withdrawMaximum(false);
+    _setPausedInvesting(true);
+    _updateStoredBalance();
   }
 
-  function _withdrawMaximum(bool claim) internal updateSupplyInTheEnd {
+  function _withdrawMaximum(bool claim) internal {
     if (claim) {
+      _handleFee();
       _liquidateRewards();
+    } else {
+      _accrueFee();
     }
     _redeemMaximum();
   }
 
-  function withdrawToVault(uint256 amountUnderlying) public restricted updateSupplyInTheEnd {
+  function continueInvesting() public onlyGovernance {
+    _setPausedInvesting(false);
+  }
+
+  function withdrawToVault(uint256 amountUnderlying) public restricted {
+    _accrueFee();
     address _underlying = underlying();
     uint256 balance = IERC20(_underlying).balanceOf(address(this));
+    if (_underlying == zk) {
+      balance = balance.sub(zkBalanceLast);
+    }
     if (amountUnderlying <= balance) {
       IERC20(_underlying).safeTransfer(vault(), amountUnderlying);
       return;
@@ -154,31 +218,31 @@ contract ReactorFusionFoldStrategy is BaseUpgradeableStrategy {
     // transfer the amount requested (or the amount we have) back to vault()
     IERC20(_underlying).safeTransfer(vault(), amountUnderlying);
     balance = IERC20(_underlying).balanceOf(address(this));
+    if (_underlying == zk) {
+      balance = balance.sub(zkBalanceLast);
+    }
     if (balance > 0) {
       _investAllUnderlying();
     }
+    _updateStoredBalance();
   }
 
-  /**
-  * Withdraws all assets, liquidates XVS, and invests again in the required ratio.
-  */
-  function doHardWork() public restricted {
-    _liquidateRewards();
-    _investAllUnderlying();
-  }
-
-  /**
-  * Redeems `amountUnderlying` or fails.
-  */
   function _redeemPartial(uint256 amountUnderlying) internal {
     address _underlying = underlying();
     uint256 balanceBefore = IERC20(_underlying).balanceOf(address(this));
-    _foldRedeem(
+    _redeemNoFlash(
       amountUnderlying,
       fold()? borrowTargetFactorNumerator():0
     );
     uint256 balanceAfter = IERC20(_underlying).balanceOf(address(this));
     require(balanceAfter.sub(balanceBefore) >= amountUnderlying, "Unable to withdraw the entire amountUnderlying");
+  }
+
+  function doHardWork() public restricted {
+    _handleFee();
+    _liquidateRewards();
+    _investAllUnderlying();
+    _updateStoredBalance();
   }
 
   /**
@@ -202,22 +266,29 @@ contract ReactorFusionFoldStrategy is BaseUpgradeableStrategy {
     }
     address _rewardToken = rewardToken();
     address _universalLiquidator = universalLiquidator();
-    for (uint256 i; i < rewardTokens.length; i++) {
+    address _underlying = underlying();
+    for(uint256 i = 0; i < rewardTokens.length; i++){
       address token = rewardTokens[i];
       uint256 balance = IERC20(token).balanceOf(address(this));
+
       if (token == zk) {
-        if (balance > zkBalanceLast) {
+        if (balance > zkBalanceLast && _underlying != zk) {
           _updateZkDist(balance);
         }
         balance = _getZkAmt();
       }
+
       if (balance > 0 && token != _rewardToken){
         IERC20(token).safeApprove(_universalLiquidator, 0);
         IERC20(token).safeApprove(_universalLiquidator, balance);
         IUniversalLiquidator(_universalLiquidator).swap(token, _rewardToken, balance, 1, address(this));
       }
     }
+
     uint256 rewardBalance = IERC20(_rewardToken).balanceOf(address(this));
+    if (rewardBalance < 1e17) {
+      return;
+    }
     _notifyProfitInRewardToken(_rewardToken, rewardBalance);
     uint256 remainingRewardBalance = IERC20(_rewardToken).balanceOf(address(this));
 
@@ -225,7 +296,6 @@ contract ReactorFusionFoldStrategy is BaseUpgradeableStrategy {
       return;
     }
   
-    address _underlying = underlying();
     if (_underlying != _rewardToken) {
       IERC20(_rewardToken).safeApprove(_universalLiquidator, 0);
       IERC20(_rewardToken).safeApprove(_universalLiquidator, remainingRewardBalance);
@@ -234,7 +304,6 @@ contract ReactorFusionFoldStrategy is BaseUpgradeableStrategy {
   }
 
   function _updateZkDist(uint256 balance) internal {
-    zkBalanceStart = balance;
     zkBalanceLast = balance;
     lastRewardTime = block.timestamp.sub(86400);
     zkPerSec = balance.div(691200);
@@ -243,7 +312,7 @@ contract ReactorFusionFoldStrategy is BaseUpgradeableStrategy {
   function _getZkAmt() internal returns (uint256) {
     uint256 balance = IERC20(zk).balanceOf(address(this));
     uint256 earned = Math.min(block.timestamp.sub(lastRewardTime).mul(zkPerSec), balance);
-    zkBalanceLast = balance.sub(earned);
+    zkBalanceLast = zkBalanceLast.sub(earned);
     lastRewardTime = block.timestamp;
     return earned;
   }
@@ -252,32 +321,29 @@ contract ReactorFusionFoldStrategy is BaseUpgradeableStrategy {
   * Returns the current balance.
   */
   function investedUnderlyingBalance() public view returns (uint256) {
-    // underlying in this strategy + underlying redeemable from Radiant - debt
-    return IERC20(underlying()).balanceOf(address(this))
-    .add(suppliedInUnderlying)
-    .sub(borrowedInUnderlying);
+    uint256 balance = IERC20(underlying()).balanceOf(address(this));
+    if (underlying() == zk) {
+      balance = balance.sub(zkBalanceLast);
+    }
+    return balance.add(storedBalance()).sub(pendingFee());
   }
 
   /**
   * Supplies to Moonwel
   */
-  function _supply(uint256 amount) internal {
-    if (amount == 0){
+  function _supply(uint256 amountUnderlying) internal {
+    if (amountUnderlying == 0){
       return;
     }
     address _underlying = underlying();
     address _cToken = cToken();
-    uint256 balance = IERC20(_underlying).balanceOf(address(this));
-    if (amount < balance) {
-      balance = amount;
-    }
     if (_underlying == weth) {
-      IWETH(weth).withdraw(balance);
-      CTokenInterface(_cToken).mint{value: balance}();
+      IWETH(weth).withdraw(amountUnderlying);
+      CTokenInterface(_cToken).mint{value: amountUnderlying}();
     } else {
       IERC20(_underlying).safeApprove(_cToken, 0);
-      IERC20(_underlying).safeApprove(_cToken, balance);
-      CTokenInterface(_cToken).mint(balance);
+      IERC20(_underlying).safeApprove(_cToken, amountUnderlying);
+      CTokenInterface(_cToken).mint(amountUnderlying);
     }
   }
 
@@ -325,70 +391,59 @@ contract ReactorFusionFoldStrategy is BaseUpgradeableStrategy {
 
   function _redeemMaximum() internal {
     address _cToken = cToken();
-    // amount of liquidity in Radiant
     uint256 available = CTokenInterface(_cToken).getCash();
     // amount we supplied
     uint256 supplied = CTokenInterface(_cToken).balanceOfUnderlying(address(this));
     // amount we borrowed
     uint256 borrowed = CTokenInterface(_cToken).borrowBalanceCurrent(address(this));
-    uint256 balance = supplied.sub(borrowed);
+    uint256 balance = supplied.sub(borrowed).sub(pendingFee().add(1));
 
-    _foldRedeem(Math.min(available, balance), 0);
+    _redeemNoFlash(Math.min(balance, available), 0);
+    available = CTokenInterface(_cToken).getCash();
     supplied = CTokenInterface(_cToken).balanceOfUnderlying(address(this));
-    if (supplied > 0) {
-      _redeem(supplied);
+    if (Math.min(supplied, available) > pendingFee()) {
+      _redeem(Math.min(supplied, available).sub(pendingFee().add(1)));
     }
   }
 
-  function _foldDeposit() internal {
-    address _cToken = cToken();
-    uint _borrowNum = borrowTargetFactorNumerator();
-    // amount we supplied
-    uint256 supplied = CTokenInterface(_cToken).balanceOfUnderlying(address(this));
-    // amount we borrowed
-    uint256 borrowed = CTokenInterface(_cToken).borrowBalanceCurrent(address(this));
-
-    _depositNoFlash(supplied, borrowed, _cToken, _borrowNum);
-  }
-
-  function _foldRedeem(uint256 amount, uint256 _borrowTargetFactorNumerator) internal {
-    address _cToken = cToken();
-    // amount we supplied
-    uint256 supplied = CTokenInterface(_cToken).balanceOfUnderlying(address(this));
-    // amount we borrowed
-    uint256 borrowed = CTokenInterface(_cToken).borrowBalanceCurrent(address(this));
-
-    _redeemNoFlash(amount, supplied, borrowed, _cToken, _borrowTargetFactorNumerator);
-  }
-
-  function _depositNoFlash(uint256 supplied, uint256 borrowed, address _cToken, uint256 _borrowNum) internal {
+  function _depositNoFlash() internal {
     address _underlying = underlying();
+    address _cToken = cToken();
+    uint256 _borrowNum = borrowTargetFactorNumerator();
+    // amount we supplied
+    uint256 supplied = CTokenInterface(_cToken).balanceOfUnderlying(address(this));
+    // amount we borrowed
+    uint256 borrowed = CTokenInterface(_cToken).borrowBalanceCurrent(address(this));
     uint256 balance = supplied.sub(borrowed);
     uint256 borrowTarget = balance.mul(_borrowNum).div(uint(1000).sub(_borrowNum));
+
     if (borrowed > borrowTarget) {
-      _redeemNoFlash(0, supplied, borrowed, _cToken, _borrowNum);
-      return;
-    }
-    {
-      uint256 borrowCap = IComptroller(comptroller()).borrowCaps(_cToken);
-      uint256 totalBorrows = CTokenInterface(_cToken).totalBorrows();
-      uint256 borrowAvail;
+      _redeemPartial(0);
+      borrowTarget = borrowed;
+    } else {
+      address _comptroller = comptroller();
+      uint256 borrowCap = IComptroller(_comptroller).borrowCaps(_cToken);
       if (borrowCap == 0) {
-        borrowAvail = type(uint256).max;
-      } else if (totalBorrows < borrowCap) {
-        borrowAvail = borrowCap.sub(totalBorrows).sub(1);
+        borrowCap = type(uint256).max;
+      }
+      uint256 totalBorrow = CTokenInterface(_cToken).totalBorrows();
+      uint256 borrowAvail;
+      if (totalBorrow < borrowCap) {
+        borrowAvail = borrowCap.sub(totalBorrow).sub(2);
       } else {
         borrowAvail = 0;
       }
-      if (borrowTarget.sub(borrowed) > borrowAvail) {
-        borrowTarget = borrowed.add(borrowAvail);
-      }
+      borrowTarget = Math.min(borrowTarget, borrowed.add(borrowAvail));
     }
+
     while (borrowed < borrowTarget) {
       uint256 wantBorrow = borrowTarget.sub(borrowed);
       uint256 maxBorrow = supplied.mul(collateralFactorNumerator()).div(uint(1000)).sub(borrowed);
       _borrow(Math.min(wantBorrow, maxBorrow));
       uint256 underlyingBalance = IERC20(_underlying).balanceOf(address(this));
+      if (_underlying == zk) {
+        underlyingBalance = underlyingBalance.sub(zkBalanceLast);
+      }
       if (underlyingBalance > 0) {
         _supply(underlyingBalance);
       }
@@ -398,8 +453,13 @@ contract ReactorFusionFoldStrategy is BaseUpgradeableStrategy {
     }
   }
 
-  function _redeemNoFlash(uint256 amount, uint256 supplied, uint256 borrowed, address _cToken, uint256 _borrowNum) internal {
+  function _redeemNoFlash(uint256 amount, uint256 _borrowNum) internal {
     address _underlying = underlying();
+    address _cToken = cToken();
+    // amount we supplied
+    uint256 supplied = CTokenInterface(_cToken).balanceOfUnderlying(address(this));
+    // amount we borrowed
+    uint256 borrowed = CTokenInterface(_cToken).borrowBalanceCurrent(address(this));
     uint256 newBorrowTarget;
     {
         uint256 oldBalance = supplied.sub(borrowed);
@@ -414,19 +474,39 @@ contract ReactorFusionFoldStrategy is BaseUpgradeableStrategy {
       uint256 toRedeem = Math.min(supplied.sub(requiredCollateral), amount.add(toRepay));
       _redeem(toRedeem);
       // now we can repay our borrowed amount
-      uint256 underlyingBalance = IERC20(_underlying).balanceOf(address(this));
-      _repay(Math.min(toRepay, underlyingBalance));
+      uint256 balance = IERC20(_underlying).balanceOf(address(this));
+      if (_underlying == zk) {
+        balance = balance.sub(zkBalanceLast);
+      }
+      _repay(Math.min(toRepay, balance));
       // update the parameters
       borrowed = CTokenInterface(_cToken).borrowBalanceCurrent(address(this));
       supplied = CTokenInterface(_cToken).balanceOfUnderlying(address(this));
     }
     uint256 underlyingBalance = IERC20(_underlying).balanceOf(address(this));
+    if (_underlying == zk) {
+      underlyingBalance = underlyingBalance.sub(zkBalanceLast);
+    }
     if (underlyingBalance < amount) {
       uint256 toRedeem = amount.sub(underlyingBalance);
       uint256 balance = supplied.sub(borrowed);
       // redeem the most we can redeem
       _redeem(Math.min(toRedeem, balance));
     }
+  }
+
+  function merklClaim(
+    address merklDistr,
+    address[] calldata users,
+    address[] calldata tokens,
+    uint256[] calldata amounts,
+    bytes32[][] calldata proofs
+  ) external {
+    uint256 balanceBefore = IERC20(zk).balanceOf(address(this));
+    IDistributor(merklDistr).claim(users, tokens, amounts, proofs);
+    uint256 balanceAfter = IERC20(zk).balanceOf(address(this));
+    uint256 claimed = balanceAfter.sub(balanceBefore);
+    _updateZkDist(claimed);
   }
 
   // updating collateral factor
@@ -475,12 +555,12 @@ contract ReactorFusionFoldStrategy is BaseUpgradeableStrategy {
     return getAddress(_COMPTROLLER_SLOT);
   }
 
-  function finalizeUpgrade() external onlyGovernance updateSupplyInTheEnd {
+  function finalizeUpgrade() external onlyGovernance {
     _finalizeUpgrade();
-    zkBalanceStart = 0;
     zkBalanceLast = 0;
     lastRewardTime = 0;
     zkPerSec = 0;
+    _updateStoredBalance();
   }
 
   receive() external payable {}

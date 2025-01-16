@@ -127,7 +127,7 @@ async function setupCoreProtocol(config) {
     hre.zksyncEthers.provider.send("evm_mine");
   } else {
     const strategyFact = await hre.zksyncEthers.getContractFactory(config.strategyArtifact, config.governance);
-    const strategyImpl = await strategyFact.deploy();
+    strategyImpl = await strategyFact.deploy();
     hre.zksyncEthers.provider.send("evm_mine");
     console.log("Strategy Implementation deployed.");
     const proxyFact = await hre.zksyncEthers.getContractFactory("StrategyProxy", config.governance);
@@ -144,21 +144,32 @@ async function setupCoreProtocol(config) {
 
   if (config.announceStrategy === true) {
     // Announce switch, time pass, switch to strategy
-    await vault.announceStrategyUpdate(strategy.target, { from: config.governance });
+    hre.zksyncEthers.provider.send("evm_mine");
+    await vault.announceStrategyUpdate(strategy.target);
+    hre.zksyncEthers.provider.send("evm_mine");
     console.log("Strategy switch announced. Waiting...");
     await Utils.waitHours(13);
-    await vault.setStrategy(strategy.target, { from: config.governance });
-    await vault.setVaultFractionToInvest(100, 100, { from: config.governance });
+    hre.zksyncEthers.provider.send("evm_mine");
+    await vault.setStrategy(strategy.target);
+    hre.zksyncEthers.provider.send("evm_mine");
+    await vault.setVaultFractionToInvest(100, 100);
+    hre.zksyncEthers.provider.send("evm_mine");
     console.log("Strategy switch completed.");
   } else if (config.upgradeStrategy === true) {
     // Announce upgrade, time pass, upgrade the strategy
-    const strategyAsUpgradable = await IUpgradeableStrategy.at(await vault.strategy());
-    await strategyAsUpgradable.scheduleUpgrade(strategyImpl.target, { from: config.governance });
+    const strategyAsUpgradable = await hre.zksyncEthers.getContractAt("IUpgradeableStrategy", await vault.strategy(), config.governance);
+    await hre.zksyncEthers.provider.send("evm_mine");
+    await strategyAsUpgradable.scheduleUpgrade(strategyImpl.target);
+    await hre.zksyncEthers.provider.send("evm_mine");
     console.log("Upgrade scheduled. Waiting...");
     await Utils.waitHours(13);
-    await strategyAsUpgradable.upgrade({ from: config.governance });
-    await vault.setVaultFractionToInvest(100, 100, { from: config.governance });
-    strategy = await config.strategyArtifact.at(await vault.strategy());
+    await hre.zksyncEthers.provider.send("evm_mine");
+    await strategyAsUpgradable.upgrade();
+    await hre.zksyncEthers.provider.send("evm_mine");
+    await vault.setVaultFractionToInvest(100, 100);
+    await hre.zksyncEthers.provider.send("evm_mine");
+    strategy = await await hre.zksyncEthers.getContractAt(config.strategyArtifact, await vault.strategy(), config.governance);
+    await hre.zksyncEthers.provider.send("evm_mine");
     console.log("Strategy upgrade completed.");
   } else {
     await vault.connect(config.governance).setStrategy(strategy.target, {gasPrice: config.gasPrice});
