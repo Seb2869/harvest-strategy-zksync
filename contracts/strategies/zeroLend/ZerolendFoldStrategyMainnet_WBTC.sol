@@ -3,7 +3,7 @@ pragma solidity 0.8.24;
 
 import "../aave/AaveFoldStrategy.sol";
 
-contract ZerolendFoldStrategyMainnet_MBTC is AaveFoldStrategy {
+contract ZerolendFoldStrategyMainnet_WBTC is AaveFoldStrategy {
 
   constructor() {}
 
@@ -11,9 +11,9 @@ contract ZerolendFoldStrategyMainnet_MBTC is AaveFoldStrategy {
     address _storage,
     address _vault
   ) public initializer {
-    address underlying = address(0xE757355edba7ced7B8c0271BBA4eFDa184aD75Ab);
-    address aToken = address(0xafe91971600af83D23AB691B0a1A566d5F8E42c0);
-    address debtToken = address(0x8450646d1ea5F4FeF8Ab6aF95CFfbb29664Af011);
+    address underlying = address(0xBBeB516fb02a01611cBBE0453Fe3c580D7281011);
+    address aToken = address(0x7c65E6eC6fECeb333092e6FE69672a3475C591fB);
+    address debtToken = address(0xaBd3C4E4AC6e0d81FCfa5C41a76e9583a8f81909);
     address zk = address(0x5A7d6b2F92C77FAD6CCaBd7EE0624E64907Eaf3E);
     address weth = address(0x5AEa5775959fBC2557Cc8789bC1bf90A239D9a91);
     AaveFoldStrategy.initializeBaseStrategy(
@@ -23,10 +23,10 @@ contract ZerolendFoldStrategyMainnet_MBTC is AaveFoldStrategy {
       aToken,
       debtToken,
       weth,
-      0,
-      1,
+      680,
+      699,
       1000,
-      false
+      true
     );
     rewardTokens = [zk];
   }

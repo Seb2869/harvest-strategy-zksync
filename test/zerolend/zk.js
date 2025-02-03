@@ -9,12 +9,12 @@ const addresses = require("../test-config.js");
 const BigNumber = require("bignumber.js");
 const { zksyncEthers } = require("hardhat");
 
-const Strategy = "ZerolendFoldStrategyMainnet_MBTC";
+const Strategy = "ZerolendFoldStrategyMainnet_ZK";
 
 // Developed and tested at blockNumber 55184350
 
 // Vanilla Mocha test. Increased compatibility with tools that integrate Mocha.
-describe("ZKSync Mainnet Zerolend MBTC", function() {
+describe("ZKSync Mainnet Zerolend ZK", function() {
   let gasPrice;
 
   // external contracts
@@ -39,7 +39,7 @@ describe("ZKSync Mainnet Zerolend MBTC", function() {
   let strategy;
 
   async function setupExternalContracts() {
-    underlying = await zksyncEthers.getContractAt("IERC20", "0xE757355edba7ced7B8c0271BBA4eFDa184aD75Ab");
+    underlying = await zksyncEthers.getContractAt("IERC20", "0x5A7d6b2F92C77FAD6CCaBd7EE0624E64907Eaf3E");
     console.log("Fetching Underlying at: ", underlying.target);
   }
 
@@ -57,10 +57,10 @@ describe("ZKSync Mainnet Zerolend MBTC", function() {
       "strategyArtifactIsUpgradable": true,
       "underlying": underlying,
       "governance": governance,
-      "liquidation": [
-        {"uniV3": [weth, "0xE757355edba7ced7B8c0271BBA4eFDa184aD75Ab"]},
-        {"uniV3": ["0xE757355edba7ced7B8c0271BBA4eFDa184aD75Ab", weth]},
-      ]
+      // "liquidation": [
+      //   {"zkSwap": ["0x5A7d6b2F92C77FAD6CCaBd7EE0624E64907Eaf3E", weth, zf]},
+      //   {"zkSwap": [zf, weth, wrseth]},
+      // ]
     });
 
     zk = await zksyncEthers.getContractAt("IERC20", "0x5A7d6b2F92C77FAD6CCaBd7EE0624E64907Eaf3E", governance);
@@ -68,11 +68,11 @@ describe("ZKSync Mainnet Zerolend MBTC", function() {
 
   describe("Happy path", function() {
     it("Farmer should earn money", async function() {
-      let farmerOldBalance = new BigNumber(await underlying.balanceOf(farmer1.address));
+      let farmerOldBalance = new BigNumber(await underlying.balanceOf(farmer1.address)).div(2);
       console.log("Old balance:", farmerOldBalance.toFixed());
       await depositVault(farmer1, underlying, vault, farmerOldBalance, gasPrice);
       let hours = 10;
-      let blocksPerHour = 3600;
+      let blocksPerHour = 3600*5;
       let oldSharePrice;
       let newSharePrice;
 
@@ -83,6 +83,8 @@ describe("ZKSync Mainnet Zerolend MBTC", function() {
           console.log("ZK Balance to transfer:", balance.toFixed());
           await hre.zksyncEthers.provider.send("evm_mine");
           await zk.transfer(strategy.target, balance.toFixed());
+          await hre.zksyncEthers.provider.send("evm_mine");
+          await strategy._updateZkDist(balance.toFixed());
           await hre.zksyncEthers.provider.send("evm_mine");
         }
         let zkPerSec = new BigNumber(await strategy.zkPerSec());

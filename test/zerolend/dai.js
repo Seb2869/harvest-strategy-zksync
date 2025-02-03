@@ -11,10 +11,10 @@ const { zksyncEthers } = require("hardhat");
 
 const Strategy = "ZerolendFoldStrategyMainnet_DAI";
 
-// Developed and tested at blockNumber 53721725
+// Developed and tested at blockNumber 55184350
 
 // Vanilla Mocha test. Increased compatibility with tools that integrate Mocha.
-describe("ZKSync Mainnet ZeroLend DAI", function() {
+describe("ZKSync Mainnet Zerolend DAI", function() {
   let gasPrice;
 
   // external contracts
@@ -23,7 +23,7 @@ describe("ZKSync Mainnet ZeroLend DAI", function() {
   // external setup
   let zk;
   let weth = "0x5AEa5775959fBC2557Cc8789bC1bf90A239D9a91";
-  let dai = "0x4B9eb6c0b6ea15176BBF62841C6B2A8a398cb656";
+  let zf = "0x31C2c031fDc9d33e974f327Ab0d9883Eae06cA4A";
   let wrseth = "0xd4169E045bcF9a86cC00101225d9ED61D2F51af2";
 
   // parties in the protocol
@@ -57,10 +57,10 @@ describe("ZKSync Mainnet ZeroLend DAI", function() {
       "strategyArtifactIsUpgradable": true,
       "underlying": underlying,
       "governance": governance,
-      // "liquidation": [
-      //   {"zkSwap": ["0x5A7d6b2F92C77FAD6CCaBd7EE0624E64907Eaf3E", weth, zf]},
-      //   {"zkSwap": [zf, weth, wrseth]},
-      // ]
+      "liquidation": [
+        {"uniV3": [weth, "0x4B9eb6c0b6ea15176BBF62841C6B2A8a398cb656"]},
+        {"uniV3": ["0x4B9eb6c0b6ea15176BBF62841C6B2A8a398cb656", weth]},
+      ]
     });
 
     zk = await zksyncEthers.getContractAt("IERC20", "0x5A7d6b2F92C77FAD6CCaBd7EE0624E64907Eaf3E", governance);
@@ -72,19 +72,19 @@ describe("ZKSync Mainnet ZeroLend DAI", function() {
       console.log("Old balance:", farmerOldBalance.toFixed());
       await depositVault(farmer1, underlying, vault, farmerOldBalance, gasPrice);
       let hours = 10;
-      let blocksPerHour = 200;
+      let blocksPerHour = 3600;
       let oldSharePrice;
       let newSharePrice;
 
       for (let i = 0; i < hours; i++) {
         console.log("loop ", i);
-        if (i == 1) {
-          let balance = new BigNumber(await zk.balanceOf(governance.address));
-          console.log("ZK Balance to transfer:", balance.toFixed());
-          await hre.zksyncEthers.provider.send("evm_mine");
-          await zk.transfer(strategy.target, balance.toFixed());
-          await hre.zksyncEthers.provider.send("evm_mine");
-        }
+        // if (i == 1) {
+        //   let balance = new BigNumber(await zk.balanceOf(governance.address));
+        //   console.log("ZK Balance to transfer:", balance.toFixed());
+        //   await hre.zksyncEthers.provider.send("evm_mine");
+        //   await zk.transfer(strategy.target, balance.toFixed());
+        //   await hre.zksyncEthers.provider.send("evm_mine");
+        // }
         let zkPerSec = new BigNumber(await strategy.zkPerSec());
         let zkBalance = new BigNumber(await zk.balanceOf(strategy.target));
         console.log("ZK per second:", zkPerSec.toFixed());
@@ -106,7 +106,7 @@ describe("ZKSync Mainnet ZeroLend DAI", function() {
         console.log("instant APR:", apr*100, "%");
         console.log("instant APY:", (apy-1)*100, "%");
 
-        await Utils.advanceNBlock(blocksPerHour);
+        await Utils.waitTime(blocksPerHour);
       }
       await vault.withdraw(new BigNumber(await vault.balanceOf(farmer1)).toFixed(), { from: farmer1 });
       let farmerNewBalance = new BigNumber(await underlying.balanceOf(farmer1)).minus(farmerOldBalance);

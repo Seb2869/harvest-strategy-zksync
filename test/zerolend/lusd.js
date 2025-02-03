@@ -9,12 +9,12 @@ const addresses = require("../test-config.js");
 const BigNumber = require("bignumber.js");
 const { zksyncEthers } = require("hardhat");
 
-const Strategy = "ZerolendFoldStrategyMainnet_MBTC";
+const Strategy = "ZerolendFoldStrategyMainnet_LUSD";
 
 // Developed and tested at blockNumber 55184350
 
 // Vanilla Mocha test. Increased compatibility with tools that integrate Mocha.
-describe("ZKSync Mainnet Zerolend MBTC", function() {
+describe("ZKSync Mainnet Zerolend LUSD", function() {
   let gasPrice;
 
   // external contracts
@@ -39,7 +39,7 @@ describe("ZKSync Mainnet Zerolend MBTC", function() {
   let strategy;
 
   async function setupExternalContracts() {
-    underlying = await zksyncEthers.getContractAt("IERC20", "0xE757355edba7ced7B8c0271BBA4eFDa184aD75Ab");
+    underlying = await zksyncEthers.getContractAt("IERC20", "0x503234F203fC7Eb888EEC8513210612a43Cf6115");
     console.log("Fetching Underlying at: ", underlying.target);
   }
 
@@ -58,8 +58,8 @@ describe("ZKSync Mainnet Zerolend MBTC", function() {
       "underlying": underlying,
       "governance": governance,
       "liquidation": [
-        {"uniV3": [weth, "0xE757355edba7ced7B8c0271BBA4eFDa184aD75Ab"]},
-        {"uniV3": ["0xE757355edba7ced7B8c0271BBA4eFDa184aD75Ab", weth]},
+        {"uniV3": [weth, "0x503234F203fC7Eb888EEC8513210612a43Cf6115"]},
+        {"uniV3": ["0x503234F203fC7Eb888EEC8513210612a43Cf6115", weth]},
       ]
     });
 
@@ -78,13 +78,13 @@ describe("ZKSync Mainnet Zerolend MBTC", function() {
 
       for (let i = 0; i < hours; i++) {
         console.log("loop ", i);
-        if (i == 1) {
-          let balance = new BigNumber(await zk.balanceOf(governance.address));
-          console.log("ZK Balance to transfer:", balance.toFixed());
-          await hre.zksyncEthers.provider.send("evm_mine");
-          await zk.transfer(strategy.target, balance.toFixed());
-          await hre.zksyncEthers.provider.send("evm_mine");
-        }
+        // if (i == 1) {
+        //   let balance = new BigNumber(await zk.balanceOf(governance.address));
+        //   console.log("ZK Balance to transfer:", balance.toFixed());
+        //   await hre.zksyncEthers.provider.send("evm_mine");
+        //   await zk.transfer(strategy.target, balance.toFixed());
+        //   await hre.zksyncEthers.provider.send("evm_mine");
+        // }
         let zkPerSec = new BigNumber(await strategy.zkPerSec());
         let zkBalance = new BigNumber(await zk.balanceOf(strategy.target));
         console.log("ZK per second:", zkPerSec.toFixed());

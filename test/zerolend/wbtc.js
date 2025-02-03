@@ -9,12 +9,12 @@ const addresses = require("../test-config.js");
 const BigNumber = require("bignumber.js");
 const { zksyncEthers } = require("hardhat");
 
-const Strategy = "ZerolendFoldStrategyMainnet_MBTC";
+const Strategy = "ZerolendFoldStrategyMainnet_WBTC";
 
 // Developed and tested at blockNumber 55184350
 
 // Vanilla Mocha test. Increased compatibility with tools that integrate Mocha.
-describe("ZKSync Mainnet Zerolend MBTC", function() {
+describe("ZKSync Mainnet Zerolend WBTC", function() {
   let gasPrice;
 
   // external contracts
@@ -39,7 +39,7 @@ describe("ZKSync Mainnet Zerolend MBTC", function() {
   let strategy;
 
   async function setupExternalContracts() {
-    underlying = await zksyncEthers.getContractAt("IERC20", "0xE757355edba7ced7B8c0271BBA4eFDa184aD75Ab");
+    underlying = await zksyncEthers.getContractAt("IERC20", "0xBBeB516fb02a01611cBBE0453Fe3c580D7281011");
     console.log("Fetching Underlying at: ", underlying.target);
   }
 
@@ -57,10 +57,10 @@ describe("ZKSync Mainnet Zerolend MBTC", function() {
       "strategyArtifactIsUpgradable": true,
       "underlying": underlying,
       "governance": governance,
-      "liquidation": [
-        {"uniV3": [weth, "0xE757355edba7ced7B8c0271BBA4eFDa184aD75Ab"]},
-        {"uniV3": ["0xE757355edba7ced7B8c0271BBA4eFDa184aD75Ab", weth]},
-      ]
+      // "liquidation": [
+      //   {"uniV3": [weth, "0xE757355edba7ced7B8c0271BBA4eFDa184aD75Ab"]},
+      //   {"uniV3": ["0xE757355edba7ced7B8c0271BBA4eFDa184aD75Ab", weth]},
+      // ]
     });
 
     zk = await zksyncEthers.getContractAt("IERC20", "0x5A7d6b2F92C77FAD6CCaBd7EE0624E64907Eaf3E", governance);
