@@ -366,9 +366,10 @@ contract VenusFoldStrategy is BaseUpgradeableStrategy {
     address _cToken = cToken();
     uint256 exchange = CTokenInterface(_cToken).exchangeRateCurrent();
     if (amountUnderlying.mul(1e18) < exchange){
+      CTokenInterface(_cToken).redeem(1);
       return;
     }
-    CTokenInterface(cToken()).redeemUnderlying(amountUnderlying);
+    CTokenInterface(_cToken).redeemUnderlying(amountUnderlying);
   }
 
   function _repay(uint256 amountUnderlying) internal {
