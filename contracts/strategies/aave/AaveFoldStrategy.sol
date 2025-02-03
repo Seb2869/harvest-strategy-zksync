@@ -12,6 +12,7 @@ import "../../base/interface/aave/IPool.sol";
 import "../../base/interface/aave/IAaveIncentivesController.sol";
 import "../../base/interface/aave/DataTypes.sol";
 import "../../base/interface/aave/ReserveConfiguration.sol";
+import "../../base/interface/merkl/IDistributor.sol";
 
 contract AaveFoldStrategy is BaseUpgradeableStrategy {
 
@@ -157,6 +158,9 @@ contract AaveFoldStrategy is BaseUpgradeableStrategy {
     address _underlying = underlying();
     uint256 underlyingBalance = IERC20(_underlying).balanceOf(address(this));
     if (underlyingBalance > 0) {
+      if (_underlying == zk) {
+        underlyingBalance = underlyingBalance.sub(zkBalanceLast);
+      }
       _supply(underlyingBalance);
     }
     if (fold()) {
@@ -167,8 +171,12 @@ contract AaveFoldStrategy is BaseUpgradeableStrategy {
   function withdrawAllToVault() public restricted updateSupplyInTheEnd {
     address _underlying = underlying();
     _withdrawMaximum(true);
-    if (IERC20(_underlying).balanceOf(address(this)) > 0) {
-      IERC20(_underlying).safeTransfer(vault(), IERC20(_underlying).balanceOf(address(this)));
+    uint256 balance = IERC20(_underlying).balanceOf(address(this));
+    if (balance > 0) {
+      if (_underlying == zk) {
+        balance = balance.sub(zkBalanceLast);
+      }
+      IERC20(_underlying).safeTransfer(vault(), balance);
     }
     _updateStoredBalance();
   }
@@ -198,6 +206,9 @@ contract AaveFoldStrategy is BaseUpgradeableStrategy {
     _accrueFee();
     address _underlying = underlying();
     uint256 balance = IERC20(_underlying).balanceOf(address(this));
+    if (_underlying == zk) {
+      balance = balance.sub(zkBalanceLast);
+    }
     if (amountUnderlying <= balance) {
       IERC20(_underlying).safeTransfer(vault(), amountUnderlying);
       return;
@@ -208,6 +219,9 @@ contract AaveFoldStrategy is BaseUpgradeableStrategy {
     // transfer the amount requested (or the amount we have) back to vault()
     IERC20(_underlying).safeTransfer(vault(), amountUnderlying);
     balance = IERC20(_underlying).balanceOf(address(this));
+    if (_underlying == zk) {
+      balance = balance.sub(zkBalanceLast);
+    }
     if (balance > 0) {
       _investAllUnderlying();
     }
@@ -261,6 +275,7 @@ contract AaveFoldStrategy is BaseUpgradeableStrategy {
     }
     address _rewardToken = rewardToken();
     address _universalLiquidator = universalLiquidator();
+    address _underlying = underlying();
     for(uint256 i = 0; i < rewardTokens.length; i++){
       address token = rewardTokens[i];
       uint256 balance;
@@ -282,7 +297,7 @@ contract AaveFoldStrategy is BaseUpgradeableStrategy {
       }
 
       if (token == zk) {
-        if (balance > zkBalanceLast) {
+        if (balance > zkBalanceLast && _underlying != zk) {
           _updateZkDist(balance);
         }
         balance = _getZkAmt();
@@ -303,7 +318,6 @@ contract AaveFoldStrategy is BaseUpgradeableStrategy {
       return;
     }
 
-    address _underlying = underlying();
     if (_underlying != _rewardToken) {
       IERC20(_rewardToken).safeApprove(_universalLiquidator, 0);
       IERC20(_rewardToken).safeApprove(_universalLiquidator, remainingRewardBalance);
@@ -320,7 +334,7 @@ contract AaveFoldStrategy is BaseUpgradeableStrategy {
   function _getZkAmt() internal returns (uint256) {
     uint256 balance = IERC20(zk).balanceOf(address(this));
     uint256 earned = Math.min(block.timestamp.sub(lastRewardTime).mul(zkPerSec), balance);
-    zkBalanceLast = balance.sub(earned);
+    zkBalanceLast = zkBalanceLast.sub(earned);
     lastRewardTime = block.timestamp;
     return earned;
   }
@@ -329,9 +343,11 @@ contract AaveFoldStrategy is BaseUpgradeableStrategy {
   * Returns the current balance.
   */
   function investedUnderlyingBalance() public view returns (uint256) {
-    return IERC20(underlying()).balanceOf(address(this))
-    .add(storedBalance())
-    .sub(pendingFee());
+    uint256 balance = IERC20(underlying()).balanceOf(address(this));
+    if (underlying() == zk) {
+      balance = balance.sub(zkBalanceLast);
+    }
+    return balance.add(storedBalance()).sub(pendingFee());
   }
 
   function _supply(uint256 amountUnderlying) internal {
@@ -449,6 +465,9 @@ contract AaveFoldStrategy is BaseUpgradeableStrategy {
       uint256 maxBorrow = supplied.mul(collateralFactorNumerator()).div(_denom).sub(borrowed);
       _borrow(Math.min(wantBorrow, maxBorrow));
       uint256 underlyingBalance = IERC20(_underlying).balanceOf(address(this));
+      if (_underlying == zk) {
+        underlyingBalance = underlyingBalance.sub(zkBalanceLast);
+      }
       if (underlyingBalance > 0) {
         _supply(underlyingBalance);
       }
@@ -479,13 +498,19 @@ contract AaveFoldStrategy is BaseUpgradeableStrategy {
       uint256 toRedeem = Math.min(supplied.sub(requiredCollateral), amount.add(toRepay));
       _redeem(toRedeem);
       // now we can repay our borrowed amount
-      uint256 underlyingBalance = IERC20(_underlying).balanceOf(address(this));
-      _repay(Math.min(toRepay, underlyingBalance));
+      uint256 balance = IERC20(_underlying).balanceOf(address(this));
+      if (_underlying == zk) {
+        balance = balance.sub(zkBalanceLast);
+      }
+      _repay(Math.min(toRepay, balance));
       // update the parameters
       borrowed = IVariableDebtToken(debtToken()).balanceOf(address(this));
       supplied = IAToken(aToken()).balanceOf(address(this));
     }
     uint256 underlyingBalance = IERC20(_underlying).balanceOf(address(this));
+    if (_underlying == zk) {
+      underlyingBalance = underlyingBalance.sub(zkBalanceLast);
+    }
     if (underlyingBalance < amount) {
       uint256 toRedeem = amount.sub(underlyingBalance);
       uint256 balance = supplied.sub(borrowed);
@@ -494,7 +519,21 @@ contract AaveFoldStrategy is BaseUpgradeableStrategy {
     }
   }
 
-    // updating collateral factor
+  function merklClaim(
+    address merklDistr,
+    address[] calldata users,
+    address[] calldata tokens,
+    uint256[] calldata amounts,
+    bytes32[][] calldata proofs
+  ) external {
+    uint256 balanceBefore = IERC20(zk).balanceOf(address(this));
+    IDistributor(merklDistr).claim(users, tokens, amounts, proofs);
+    uint256 balanceAfter = IERC20(zk).balanceOf(address(this));
+    uint256 claimed = balanceAfter.sub(balanceBefore);
+    _updateZkDist(claimed);
+  }
+
+  // updating collateral factor
   // note 1: one should settle the loan first before calling this
   // note 2: collateralFactorDenominator is 1000, therefore, for 20%, you need 200
   function _setCollateralFactorNumerator(uint256 _numerator) public onlyGovernance {
