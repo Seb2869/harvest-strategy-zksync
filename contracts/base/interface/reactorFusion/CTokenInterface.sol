@@ -20,6 +20,7 @@ abstract contract CTokenInterface {
     function mint() external payable virtual;
 
     function redeemUnderlying(uint redeemAmount) external virtual returns (uint);
+    function redeem(uint tokenAmount) external virtual returns (uint);
 
     function borrow(uint borrowAmount) external virtual returns (uint);
 

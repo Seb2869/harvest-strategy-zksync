@@ -30,6 +30,7 @@ async function main() {
   // console.log("Verifying source code. Id:", verificationId);
 
   await factory.createRegularVaultUsingUpgradableStrategy(id, underlying, impl.target)
+  await new Promise(r => setTimeout(r, 2000))
 
   const deployment = cleanupObj(await factory.completedDeployments(id));
   console.log(deployment)
