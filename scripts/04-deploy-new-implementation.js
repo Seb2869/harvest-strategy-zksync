@@ -13,8 +13,8 @@ async function main() {
 
   const ImplContract = await deployer.loadArtifact(implName);
   const impl = await deployer.deploy(ImplContract);
-  // const verificationId = await hre.run("verify:verify", {address: impl.target});
-  // console.log("Verifying source code. Id:", verificationId);
+  const verificationId = await hre.run("verify:verify", {address: impl.target});
+  console.log("Verifying source code. Id:", verificationId);
 
   console.log("Deployment complete. Implementation deployed at:", impl.target);
 }

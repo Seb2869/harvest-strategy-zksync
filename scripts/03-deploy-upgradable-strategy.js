@@ -24,7 +24,7 @@ async function main() {
 
   console.log("Proxy deployed at:", proxy.target);
 
-  const strategy = await zksyncEthers.getContractAtFromArtifact(StrategyImpl, proxy.target);
+  const strategy = await zksyncEthers.getContractAt(StrategyImpl, proxy.target, wallet);
   await strategy.initializeStrategy(addresses.Storage, vaultAddr);
 
   console.log("Deployment complete. New strategy deployed and initialised at", proxy.target);

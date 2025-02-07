@@ -6,8 +6,9 @@ import "./BaseUpgradeabilityProxy.sol";
 
 contract StrategyProxy is BaseUpgradeabilityProxy {
 
-  constructor(address _implementation) public {
+  constructor(address _implementation) {
     _setImplementation(_implementation);
+    emit Upgraded(_implementation);
   }
 
   /**
