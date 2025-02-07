@@ -12,7 +12,7 @@ import "../../base/interface/aave/IPool.sol";
 import "../../base/interface/aave/IAaveIncentivesController.sol";
 import "../../base/interface/aave/DataTypes.sol";
 import "../../base/interface/aave/ReserveConfiguration.sol";
-import "../../base/interface/merkl/IDistributor.sol";
+import "../../base/interface/IRewardPrePay.sol";
 
 contract AaveFoldStrategy is BaseUpgradeableStrategy {
 
@@ -21,7 +21,7 @@ contract AaveFoldStrategy is BaseUpgradeableStrategy {
   using ReserveConfiguration for DataTypes.ReserveConfigurationMap;
 
   address public constant harvestMSIG = address(0x6a74649aCFD7822ae8Fb78463a9f2192752E5Aa2);
-  address public constant bVault = address(0xBA12222222228d8Ba445958a75a0704d566BF2C8);
+  address public constant _rewardPrePay = address(0xbB17B5689DcC01A42d976255C20BD86fEe7f96Cf);
 
   // additional storage slots (on top of BaseUpgradeableStrategy ones) are defined here
   bytes32 internal constant _ATOKEN_SLOT = 0x8cdee58637b787efaa2d78bb1da1e053a2c91e61640b32339bfbba65c00abd68;
@@ -33,17 +33,9 @@ contract AaveFoldStrategy is BaseUpgradeableStrategy {
   bytes32 internal constant _BORROWTARGETFACTORNUMERATOR_SLOT = 0xa65533f4b41f3786d877c8fdd4ae6d27ada84e1d9c62ea3aca309e9aa03af1cd;
   bytes32 internal constant _FOLD_SLOT = 0x1841be4c16015a744c9fbf595f7c6b32d40278c16c1fc7cf2de88c6348de44ba;
 
-  uint256 public suppliedInUnderlying;
-  uint256 public borrowedInUnderlying;
-
   // this would be reset on each upgrade
   address[] public rewardTokens;
   mapping(address => bool) public isAToken;
-
-  uint256 public zkBalanceLast;
-  uint256 public lastRewardTime;
-  uint256 public zkPerSec;
-  address public constant zk = address(0x5A7d6b2F92C77FAD6CCaBd7EE0624E64907Eaf3E);
 
   constructor() BaseUpgradeableStrategy() {
     assert(_ATOKEN_SLOT == bytes32(uint256(keccak256("eip1967.strategyStorage.aToken")) - 1));
@@ -75,7 +67,8 @@ contract AaveFoldStrategy is BaseUpgradeableStrategy {
       _vault,
       _aToken,
       _rewardToken,
-      harvestMSIG
+      harvestMSIG,
+      _rewardPrePay
     );
 
     require(IAToken(_aToken).UNDERLYING_ASSET_ADDRESS() == _underlying, "Underlying mismatch");
@@ -89,14 +82,6 @@ contract AaveFoldStrategy is BaseUpgradeableStrategy {
     setUint256(_COLLATERALFACTORNUMERATOR_SLOT, _collateralFactorNumerator);
     setUint256(_BORROWTARGETFACTORNUMERATOR_SLOT, _borrowTargetFactorNumerator);
     setBoolean(_FOLD_SLOT, _fold);
-  }
-
-  modifier updateSupplyInTheEnd() {
-    _;
-    // amount we supplied
-    suppliedInUnderlying = IAToken(aToken()).balanceOf(address(this));
-    // amount we borrowed
-    borrowedInUnderlying = IVariableDebtToken(debtToken()).balanceOf(address(this));
   }
 
   function currentBalance() public view returns (uint256) {
@@ -154,13 +139,10 @@ contract AaveFoldStrategy is BaseUpgradeableStrategy {
     return (token == underlying() || token == aToken());
   }
 
-  function _investAllUnderlying() internal onlyNotPausedInvesting updateSupplyInTheEnd {
+  function _investAllUnderlying() internal onlyNotPausedInvesting {
     address _underlying = underlying();
     uint256 underlyingBalance = IERC20(_underlying).balanceOf(address(this));
     if (underlyingBalance > 0) {
-      if (_underlying == zk) {
-        underlyingBalance = underlyingBalance.sub(zkBalanceLast);
-      }
       _supply(underlyingBalance);
     }
     if (fold()) {
@@ -168,20 +150,17 @@ contract AaveFoldStrategy is BaseUpgradeableStrategy {
     }
   }
 
-  function withdrawAllToVault() public restricted updateSupplyInTheEnd {
+  function withdrawAllToVault() public restricted {
     address _underlying = underlying();
     _withdrawMaximum(true);
     uint256 balance = IERC20(_underlying).balanceOf(address(this));
     if (balance > 0) {
-      if (_underlying == zk) {
-        balance = balance.sub(zkBalanceLast);
-      }
       IERC20(_underlying).safeTransfer(vault(), balance);
     }
     _updateStoredBalance();
   }
 
-  function emergencyExit() external onlyGovernance updateSupplyInTheEnd {
+  function emergencyExit() external onlyGovernance {
     _withdrawMaximum(false);
     _setPausedInvesting(true);
     _updateStoredBalance();
@@ -191,7 +170,11 @@ contract AaveFoldStrategy is BaseUpgradeableStrategy {
     if (claim) {
       _handleFee();
       uint256 aTokenAmount = _claimReward();
-      _liquidateReward(aTokenAmount);
+      uint256 prePayAmount;
+      if (IRewardPrePay(rewardPrePay()).claimable(address(this)) > 0) {
+        prePayAmount = _claimPrePay();
+      }
+      _liquidateReward(aTokenAmount, prePayAmount);
     } else {
       _accrueFee();
     }
@@ -202,13 +185,10 @@ contract AaveFoldStrategy is BaseUpgradeableStrategy {
     _setPausedInvesting(false);
   }
 
-  function withdrawToVault(uint256 amountUnderlying) public restricted updateSupplyInTheEnd {
+  function withdrawToVault(uint256 amountUnderlying) public restricted {
     _accrueFee();
     address _underlying = underlying();
     uint256 balance = IERC20(_underlying).balanceOf(address(this));
-    if (_underlying == zk) {
-      balance = balance.sub(zkBalanceLast);
-    }
     if (amountUnderlying <= balance) {
       IERC20(_underlying).safeTransfer(vault(), amountUnderlying);
       return;
@@ -219,9 +199,6 @@ contract AaveFoldStrategy is BaseUpgradeableStrategy {
     // transfer the amount requested (or the amount we have) back to vault()
     IERC20(_underlying).safeTransfer(vault(), amountUnderlying);
     balance = IERC20(_underlying).balanceOf(address(this));
-    if (_underlying == zk) {
-      balance = balance.sub(zkBalanceLast);
-    }
     if (balance > 0) {
       _investAllUnderlying();
     }
@@ -242,7 +219,11 @@ contract AaveFoldStrategy is BaseUpgradeableStrategy {
   function doHardWork() public restricted {
     _handleFee();
     uint256 aTokenAmount = _claimReward();
-    _liquidateReward(aTokenAmount);
+    uint256 prePayAmount;
+    if (IRewardPrePay(rewardPrePay()).claimable(address(this)) > 0) {
+      prePayAmount = _claimPrePay();
+    }
+    _liquidateReward(aTokenAmount, prePayAmount);
     _investAllUnderlying();
     _updateStoredBalance();
   }
@@ -267,7 +248,7 @@ contract AaveFoldStrategy is BaseUpgradeableStrategy {
     aTokenAmount = IERC20(_aToken).balanceOf(address(this)).sub(balanceBefore);
   }
 
-  function _liquidateReward(uint256 aTokenAmount) internal {
+  function _liquidateReward(uint256 aTokenAmount, uint256 prePayAmount) internal {
     if (!sell()) {
       // Profits can be disabled for possible simplified and rapid exit
       emit ProfitsNotCollected(sell(), false);
@@ -283,6 +264,8 @@ contract AaveFoldStrategy is BaseUpgradeableStrategy {
         balance = aTokenAmount;
         _redeem(balance);
         token = underlying();
+      } else if (token == IRewardPrePay(rewardPrePay()).ZK()) {
+        balance = prePayAmount;
       } else {
         if (isAToken[token]) {
           balance = IERC20(token).balanceOf(address(this));
@@ -294,13 +277,6 @@ contract AaveFoldStrategy is BaseUpgradeableStrategy {
         } else {
           balance = IERC20(token).balanceOf(address(this));
         }
-      }
-
-      if (token == zk) {
-        if (balance > zkBalanceLast && _underlying != zk) {
-          _updateZkDist(balance);
-        }
-        balance = _getZkAmt();
       }
 
       if (balance > 0 && token != _rewardToken){
@@ -325,28 +301,11 @@ contract AaveFoldStrategy is BaseUpgradeableStrategy {
     }
   }
 
-  function _updateZkDist(uint256 balance) internal {
-    zkBalanceLast = balance;
-    lastRewardTime = block.timestamp.sub(86400);
-    zkPerSec = balance.div(691200);
-  }
-
-  function _getZkAmt() internal returns (uint256) {
-    uint256 balance = IERC20(zk).balanceOf(address(this));
-    uint256 earned = Math.min(block.timestamp.sub(lastRewardTime).mul(zkPerSec), balance);
-    zkBalanceLast = zkBalanceLast.sub(earned);
-    lastRewardTime = block.timestamp;
-    return earned;
-  }
-
   /**
   * Returns the current balance.
   */
   function investedUnderlyingBalance() public view returns (uint256) {
     uint256 balance = IERC20(underlying()).balanceOf(address(this));
-    if (underlying() == zk) {
-      balance = balance.sub(zkBalanceLast);
-    }
     return balance.add(storedBalance()).sub(pendingFee());
   }
 
@@ -465,9 +424,6 @@ contract AaveFoldStrategy is BaseUpgradeableStrategy {
       uint256 maxBorrow = supplied.mul(collateralFactorNumerator()).div(_denom).sub(borrowed);
       _borrow(Math.min(wantBorrow, maxBorrow));
       uint256 underlyingBalance = IERC20(_underlying).balanceOf(address(this));
-      if (_underlying == zk) {
-        underlyingBalance = underlyingBalance.sub(zkBalanceLast);
-      }
       if (underlyingBalance > 0) {
         _supply(underlyingBalance);
       }
@@ -499,38 +455,18 @@ contract AaveFoldStrategy is BaseUpgradeableStrategy {
       _redeem(toRedeem);
       // now we can repay our borrowed amount
       uint256 balance = IERC20(_underlying).balanceOf(address(this));
-      if (_underlying == zk) {
-        balance = balance.sub(zkBalanceLast);
-      }
       _repay(Math.min(toRepay, balance));
       // update the parameters
       borrowed = IVariableDebtToken(debtToken()).balanceOf(address(this));
       supplied = IAToken(aToken()).balanceOf(address(this));
     }
     uint256 underlyingBalance = IERC20(_underlying).balanceOf(address(this));
-    if (_underlying == zk) {
-      underlyingBalance = underlyingBalance.sub(zkBalanceLast);
-    }
     if (underlyingBalance < amount) {
       uint256 toRedeem = amount.sub(underlyingBalance);
       uint256 balance = supplied.sub(borrowed);
       // redeem the most we can redeem
       _redeem(Math.min(toRedeem, balance));
     }
-  }
-
-  function merklClaim(
-    address merklDistr,
-    address[] calldata users,
-    address[] calldata tokens,
-    uint256[] calldata amounts,
-    bytes32[][] calldata proofs
-  ) external {
-    uint256 balanceBefore = IERC20(zk).balanceOf(address(this));
-    IDistributor(merklDistr).claim(users, tokens, amounts, proofs);
-    uint256 balanceAfter = IERC20(zk).balanceOf(address(this));
-    uint256 claimed = balanceAfter.sub(balanceBefore);
-    _updateZkDist(claimed);
   }
 
   // updating collateral factor
@@ -587,7 +523,7 @@ contract AaveFoldStrategy is BaseUpgradeableStrategy {
     return getAddress(_DEBT_TOKEN_SLOT);
   }
 
-  function finalizeUpgrade() external onlyGovernance updateSupplyInTheEnd {
+  function finalizeUpgrade() external onlyGovernance {
     _finalizeUpgrade();
   }
 
