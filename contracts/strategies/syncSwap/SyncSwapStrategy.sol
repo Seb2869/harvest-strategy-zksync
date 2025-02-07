@@ -54,7 +54,8 @@ contract SyncSwapStrategy is BaseUpgradeableStrategy {
       _vault,
       _stakingPool,
       _rewardToken,
-      harvestMSIG
+      harvestMSIG,
+      address(0)
     );
 
     if (rewardPool() != address(0)) {

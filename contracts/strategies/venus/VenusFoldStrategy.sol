@@ -67,7 +67,8 @@ contract VenusFoldStrategy is BaseUpgradeableStrategy {
       _vault,
       _comptroller,
       _rewardToken,
-      harvestMSIG
+      harvestMSIG,
+      address(0)
     );
 
     require(CTokenInterface(_cToken).underlying() == _underlying, "Underlying mismatch");
@@ -365,7 +366,7 @@ contract VenusFoldStrategy is BaseUpgradeableStrategy {
     }
     address _cToken = cToken();
     uint256 exchange = CTokenInterface(_cToken).exchangeRateCurrent();
-    if (amountUnderlying.mul(1e18) < exchange){
+    if (amountUnderlying < exchange.div(1e18)){
       CTokenInterface(_cToken).redeem(1);
       return;
     }
@@ -507,7 +508,7 @@ contract VenusFoldStrategy is BaseUpgradeableStrategy {
     address[] calldata tokens,
     uint256[] calldata amounts,
     bytes32[][] calldata proofs
-  ) external {
+  ) external override {
     uint256 balanceBefore = IERC20(zk).balanceOf(address(this));
     IDistributor(merklDistr).claim(users, tokens, amounts, proofs);
     uint256 balanceAfter = IERC20(zk).balanceOf(address(this));

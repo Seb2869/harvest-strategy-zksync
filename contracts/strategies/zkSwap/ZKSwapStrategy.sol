@@ -50,7 +50,8 @@ contract ZKSwapStrategy is BaseUpgradeableStrategy {
       _vault,
       _farm,
       _rewardToken,
-      harvestMSIG
+      harvestMSIG,
+      address(0)
     );
 
     (address _lpt,,,) = IFarm(rewardPool()).poolInfo(_poolID);

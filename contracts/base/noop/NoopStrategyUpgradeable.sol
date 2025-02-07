@@ -29,6 +29,7 @@ contract NoopStrategyUpgradeable is BaseUpgradeableStrategy {
       _vault,
       address(0),
       address(0),
+      address(0),
       address(0)
     );
   }

@@ -4,6 +4,7 @@ pragma solidity 0.8.24;
 import "./BaseUpgradeableStrategyStorage.sol";
 import "../interface/IController.sol";
 import "../interface/IRewardForwarder.sol";
+import "../interface/IRewardPrePay.sol";
 import "../interface/merkl/IDistributor.sol";
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "@openzeppelin/contracts/utils/math/SafeMath.sol";
@@ -24,6 +25,12 @@ contract BaseUpgradeableStrategy is BaseUpgradeableStrategyStorage {
     _;
   }
 
+  modifier onlyRewardPrePayOrGovernance() {
+    require(msg.sender == rewardPrePay() || (msg.sender == governance()),
+      "only rewardPrePay can call this");
+    _;
+  }
+
   // This is only used in `investAllUnderlying()`
   // The user can still freely withdraw from the strategy
   modifier onlyNotPausedInvesting() {
@@ -40,7 +47,8 @@ contract BaseUpgradeableStrategy is BaseUpgradeableStrategyStorage {
     address _vault,
     address _rewardPool,
     address _rewardToken,
-    address _strategist
+    address _strategist,
+    address _rewardPrePay
   ) public initializer {
     ControllableInit.initialize(
       _storage
@@ -50,6 +58,7 @@ contract BaseUpgradeableStrategy is BaseUpgradeableStrategyStorage {
     _setRewardPool(_rewardPool);
     _setRewardToken(_rewardToken);
     _setStrategist(_strategist);
+    _setRewardPrePay(_rewardPrePay);
     _setSell(true);
     _setSellFloor(0);
     _setPausedInvesting(false);
@@ -77,8 +86,31 @@ contract BaseUpgradeableStrategy is BaseUpgradeableStrategyStorage {
     );
   }
 
-  function toggleMerklOperator(address merklClaim, address operator) external onlyGovernance {
-    IDistributor(merklClaim).toggleOperator(address(this), operator);
+  function toggleMerklOperator(address merklDistr, address _operator) external onlyGovernance {
+    IDistributor(merklDistr).toggleOperator(address(this), _operator);
+  }
+
+  function merklClaim(
+    address merklDistr,
+    address[] calldata users,
+    address[] calldata tokens,
+    uint256[] calldata amounts,
+    bytes32[][] calldata proofs
+  ) virtual external onlyRewardPrePayOrGovernance {
+    address _rewardPrePay = rewardPrePay();
+    address zk = IRewardPrePay(_rewardPrePay).ZK();
+    uint256 balanceBefore = IERC20(zk).balanceOf(address(this));
+    IDistributor(merklDistr).claim(users, tokens, amounts, proofs);
+    uint256 claimed = IERC20(zk).balanceOf(address(this)).sub(balanceBefore);
+    IERC20(zk).safeTransfer(_rewardPrePay, claimed);
+  }
+
+  function _claimPrePay() internal returns (uint256) {
+    address _rewardPrePay = rewardPrePay();
+    address zk = IRewardPrePay(_rewardPrePay).ZK();
+    uint256 balanceBefore = IERC20(zk).balanceOf(address(this));
+    IRewardPrePay(_rewardPrePay).claim();
+    return IERC20(zk).balanceOf(address(this)).sub(balanceBefore);
   }
 
   // ========================= Internal & Private Functions =========================

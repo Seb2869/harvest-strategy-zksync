@@ -68,7 +68,8 @@ contract ReactorFusionFoldStrategy is BaseUpgradeableStrategy {
       _vault,
       _comptroller,
       _rewardToken,
-      harvestMSIG
+      harvestMSIG,
+      address(0)
     );
 
     if (_underlying != weth) {
@@ -364,10 +365,11 @@ contract ReactorFusionFoldStrategy is BaseUpgradeableStrategy {
   function _redeem(uint256 amountUnderlying) internal {
     address _cToken = cToken();
     uint256 exchange = CTokenInterface(_cToken).exchangeRateCurrent();
-    if (amountUnderlying.mul(1e18) < exchange){
+    if (amountUnderlying < exchange.div(1e18)){
+      CTokenInterface(_cToken).redeem(1);
       return;
     }
-    CTokenInterface(cToken()).redeemUnderlying(amountUnderlying);
+    CTokenInterface(_cToken).redeemUnderlying(amountUnderlying);
     if(underlying() == weth){
       IWETH(weth).deposit{value: address(this).balance}();
     }
@@ -501,7 +503,7 @@ contract ReactorFusionFoldStrategy is BaseUpgradeableStrategy {
     address[] calldata tokens,
     uint256[] calldata amounts,
     bytes32[][] calldata proofs
-  ) external {
+  ) external override {
     uint256 balanceBefore = IERC20(zk).balanceOf(address(this));
     IDistributor(merklDistr).claim(users, tokens, amounts, proofs);
     uint256 balanceAfter = IERC20(zk).balanceOf(address(this));
