@@ -9,4 +9,6 @@ interface IPool {
   function supply(address asset, uint256 amount, address onBehalfOf, uint16 referralCode) external;
   function withdraw(address asset, uint256 amount, address to) external;
   function getConfiguration(address asset) external view returns (DataTypes.ReserveConfigurationMap memory);
+  function getUserAccountData(address user) external view returns (uint256 totalCollateralBase, uint256 totalDebtBase, uint256 availableBorrowsBase, uint256 currentLiquidationThreshold, uint256 ltv, uint256 healthFactor);
+  function ADDRESSES_PROVIDER() external view returns (address);
 }

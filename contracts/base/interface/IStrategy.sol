@@ -34,4 +34,13 @@ interface IStrategy {
      *          writeable functions to get the # of claimable reward tokens
      */
     function getRewardPoolValues() external returns (uint256[] memory);
+
+    function merklClaim(
+        address merklDistr,
+        address[] calldata users,
+        address[] calldata tokens,
+        uint256[] calldata amounts,
+        bytes32[][] calldata proofs
+    ) external;
+
 }

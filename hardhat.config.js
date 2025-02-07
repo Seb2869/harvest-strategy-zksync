@@ -60,7 +60,7 @@ module.exports = {
     ],
   },
   zksolc: {
-    version: "1.5.8",
+    version: "1.5.11",
     compilerSource: "binary",
     settings: {
       optimizer: {
@@ -79,7 +79,7 @@ module.exports = {
     runOnCompile: false,
     strict: false,
   },
-  // etherscan: {
-  //   apiKey: secret.etherscanAPI,
-  // },
+  etherscan: {
+    apiKey: secret.etherscanAPI,
+  },
 };
