@@ -9,22 +9,22 @@ const addresses = require("../test-config.js");
 const BigNumber = require("bignumber.js");
 const { zksyncEthers } = require("hardhat");
 
-const Strategy = "ZKSwapStrategyMainnet_USDCe_USDT";
+const Strategy = "ZKSwapStrategyMainnet_ZK_ETH";
 
-// Developed and tested at blockNumber 33964350
+// Developed and tested at blockNumber 55464000
 
 // Vanilla Mocha test. Increased compatibility with tools that integrate Mocha.
-describe("ZKSync Mainnet zkSwap USDC.e-USDT", function() {
+describe("ZKSync Mainnet zkSwap ZK-ETH - PrePay", function() {
   let gasPrice;
 
   // external contracts
   let underlying;
+  let rewardPrePay;
 
   // external setup
-  let zf = "0x31C2c031fDc9d33e974f327Ab0d9883Eae06cA4A";
   let weth = "0x5AEa5775959fBC2557Cc8789bC1bf90A239D9a91";
-  let usdce = "0x3355df6D4c9C3035724Fd0e3914dE96A5a83aaf4";
-  let usdt = "0x493257fD37EDB34451f62EDf8D2a0C418852bA4C";
+  let zf = "0x31C2c031fDc9d33e974f327Ab0d9883Eae06cA4A";
+  let wrseth = "0xd4169E045bcF9a86cC00101225d9ED61D2F51af2";
 
   // parties in the protocol
   let governance;
@@ -39,25 +39,9 @@ describe("ZKSync Mainnet zkSwap USDC.e-USDT", function() {
   let strategy;
 
   async function setupExternalContracts() {
-    underlying = await zksyncEthers.getContractAt("IERC20", "0xf100ff84B363aF74e3FcdFF554E3dA3309159458");
+    underlying = await zksyncEthers.getContractAt("IERC20", "0x9EE3178701d91cc7b01D5b2d2Cae65cCB29B3De4");
     console.log("Fetching Underlying at: ", underlying.target);
-  }
-
-  async function setupBalance(){
-    // let etherGiver = await zksyncEthers.getWallet(9);
-    // await etherGiver.sendTransaction({to: underlyingWhale, value: new BigNumber(10e18).toFixed(), gasPrice: gasPrice});
-    
-    // const whale = await zksyncEthers.getImpersonatedSigner(underlyingWhale);
-    // farmerBalance = await underlying.balanceOf(whale.address);
-    // console.log(farmerBalance);
-    // underlying = await underlying.connect(whale);
-
-    // underlying.transfer(farmer1.address, farmerBalance, {gasPrice: gasPrice});
-    // await Utils.sleep(10000);
-    // await zksyncEthers.providerL2.send("evm_mine");
-    // farmerBalance = await underlying.balanceOf(whale.address);
-    // console.log(farmerBalance);
-    // console.log(await underlying.balanceOf(farmer1.address));
+    rewardPrePay = await zksyncEthers.getContractAt("RewardPrePay", addresses.RewardPrePay);
   }
 
   before(async function() {
@@ -65,26 +49,21 @@ describe("ZKSync Mainnet zkSwap USDC.e-USDT", function() {
     gasPrice = await zksyncEthers.providerL2.getGasPrice();
 
     farmer1 = await zksyncEthers.getWallet();
-    // let etherGiver = await zksyncEthers.getWallet(9);
-    // const tx = await etherGiver.sendTransaction({to: governance.address, value: new BigNumber(10e18).toFixed(), gasPrice: gasPrice});
 
     await setupExternalContracts();
     [controller, vault, strategy] = await setupCoreProtocol({
       "gasPrice": gasPrice,
-      "existingVaultAddress": null,
+      "existingVaultAddress": "0xA168884D6f63e0f4B9d9Ff50848183cE61F9eDd0",
+      "announceStrategy": true,
       "strategyArtifact": Strategy,
       "strategyArtifactIsUpgradable": true,
       "underlying": underlying,
       "governance": governance,
-      "liquidation": [
-        {"zkSwap": [zf, weth]},
-        {"zkSwap": [zf, weth, usdce]},
-        {"zkSwap": [zf, weth, usdt]},
-      ]
     });
 
-    // whale send underlying to farmers
-    await setupBalance();
+    await hre.zksyncEthers.provider.send("evm_mine");
+    await rewardPrePay.connect(governance).initializeStrategy(strategy.target, 0, 0);
+    await hre.zksyncEthers.provider.send("evm_mine");
   });
 
   describe("Happy path", function() {
@@ -93,36 +72,42 @@ describe("ZKSync Mainnet zkSwap USDC.e-USDT", function() {
       console.log("Old balance:", farmerOldBalance.toFixed());
       await depositVault(farmer1, underlying, vault, farmerOldBalance, gasPrice);
       let hours = 10;
-      let blocksPerHour = 240;
+      let blocksPerHour = 3600*5;
       let oldSharePrice;
       let newSharePrice;
 
       for (let i = 0; i < hours; i++) {
         console.log("loop ", i);
 
+        await hre.zksyncEthers.provider.send("evm_mine");
+        await rewardPrePay.connect(governance).updateReward(strategy.target, new BigNumber(i+1).times(1e18).toFixed());
+        await hre.zksyncEthers.provider.send("evm_mine");
+
         oldSharePrice = new BigNumber(await vault.getPricePerFullShare());
+        await hre.zksyncEthers.provider.send("evm_mine");
         await controller.connect(governance).doHardWork(vault.target);
+        await hre.zksyncEthers.provider.send("evm_mine");
         newSharePrice = new BigNumber(await vault.getPricePerFullShare());
 
         console.log("old shareprice: ", oldSharePrice.toFixed());
         console.log("new shareprice: ", newSharePrice.toFixed());
         console.log("growth: ", newSharePrice.toFixed() / oldSharePrice.toFixed());
 
-        apr = (newSharePrice.toFixed()/oldSharePrice.toFixed()-1)*(24/(blocksPerHour/1800))*365;
-        apy = ((newSharePrice.toFixed()/oldSharePrice.toFixed()-1)*(24/(blocksPerHour/1800))+1)**365;
+        apr = (newSharePrice.toFixed()/oldSharePrice.toFixed()-1)*(24/(blocksPerHour/3600))*365;
+        apy = ((newSharePrice.toFixed()/oldSharePrice.toFixed()-1)*(24/(blocksPerHour/3600))+1)**365;
 
         console.log("instant APR:", apr*100, "%");
         console.log("instant APY:", (apy-1)*100, "%");
 
-        await Utils.advanceNBlock(blocksPerHour);
+        await Utils.waitTime(blocksPerHour);
       }
       await vault.withdraw(new BigNumber(await vault.balanceOf(farmer1)).toFixed(), { from: farmer1 });
-      let farmerNewBalance = new BigNumber(await underlying.balanceOf(farmer1));
+      let farmerNewBalance = new BigNumber(await underlying.balanceOf(farmer1)).minus(farmerOldBalance);
       console.log("New balance:", farmerNewBalance.toFixed());
       Utils.assertBNGt(farmerNewBalance, farmerOldBalance);
 
-      apr = (farmerNewBalance.toFixed()/farmerOldBalance.toFixed()-1)*(24/(blocksPerHour*hours/1800))*365;
-      apy = ((farmerNewBalance.toFixed()/farmerOldBalance.toFixed()-1)*(24/(blocksPerHour*hours/1800))+1)**365;
+      apr = (farmerNewBalance.toFixed()/farmerOldBalance.toFixed()-1)*(24/(blocksPerHour*hours/3600))*365;
+      apy = ((farmerNewBalance.toFixed()/farmerOldBalance.toFixed()-1)*(24/(blocksPerHour*hours/3600))+1)**365;
 
       console.log("earned!");
       console.log("APR:", apr*100, "%");

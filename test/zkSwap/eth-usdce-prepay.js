@@ -9,19 +9,19 @@ const addresses = require("../test-config.js");
 const BigNumber = require("bignumber.js");
 const { zksyncEthers } = require("hardhat");
 
-const Strategy = "ZKSwapStrategyMainnet_wrsETH_ETH";
+const Strategy = "ZKSwapStrategyMainnet_ETH_USDCe";
 
-// Developed and tested at blockNumber 53594015
+// Developed and tested at blockNumber 55464000
 
 // Vanilla Mocha test. Increased compatibility with tools that integrate Mocha.
-describe("ZKSync Mainnet SyncSwap wrsETH-ETH", function() {
+describe("ZKSync Mainnet zkSwap ETH-USDC.e - PrePay", function() {
   let gasPrice;
 
   // external contracts
   let underlying;
+  let rewardPrePay;
 
   // external setup
-  let zk;
   let weth = "0x5AEa5775959fBC2557Cc8789bC1bf90A239D9a91";
   let zf = "0x31C2c031fDc9d33e974f327Ab0d9883Eae06cA4A";
   let wrseth = "0xd4169E045bcF9a86cC00101225d9ED61D2F51af2";
@@ -39,8 +39,9 @@ describe("ZKSync Mainnet SyncSwap wrsETH-ETH", function() {
   let strategy;
 
   async function setupExternalContracts() {
-    underlying = await zksyncEthers.getContractAt("IERC20", "0xeB9Fd198b20DC73E63668B89a735b7DC84e13EA0");
+    underlying = await zksyncEthers.getContractAt("IERC20", "0x7642e38867860d4512Fcce1116e2Fb539c5cdd21");
     console.log("Fetching Underlying at: ", underlying.target);
+    rewardPrePay = await zksyncEthers.getContractAt("RewardPrePay", addresses.RewardPrePay);
   }
 
   before(async function() {
@@ -52,18 +53,17 @@ describe("ZKSync Mainnet SyncSwap wrsETH-ETH", function() {
     await setupExternalContracts();
     [controller, vault, strategy] = await setupCoreProtocol({
       "gasPrice": gasPrice,
-      "existingVaultAddress": null,
+      "existingVaultAddress": "0x71b7b93f27A4DF142e47390d22e9230EF35308B2",
+      "announceStrategy": true,
       "strategyArtifact": Strategy,
       "strategyArtifactIsUpgradable": true,
       "underlying": underlying,
       "governance": governance,
-      "liquidation": [
-        {"zkSwap": ["0x5A7d6b2F92C77FAD6CCaBd7EE0624E64907Eaf3E", weth, zf]},
-        {"zkSwap": [zf, weth, wrseth]},
-      ]
     });
 
-    zk = await zksyncEthers.getContractAt("IERC20", "0x5A7d6b2F92C77FAD6CCaBd7EE0624E64907Eaf3E", governance);
+    await hre.zksyncEthers.provider.send("evm_mine");
+    await rewardPrePay.connect(governance).initializeStrategy(strategy.target, 0, 0);
+    await hre.zksyncEthers.provider.send("evm_mine");
   });
 
   describe("Happy path", function() {
@@ -72,23 +72,16 @@ describe("ZKSync Mainnet SyncSwap wrsETH-ETH", function() {
       console.log("Old balance:", farmerOldBalance.toFixed());
       await depositVault(farmer1, underlying, vault, farmerOldBalance, gasPrice);
       let hours = 10;
-      let blocksPerHour = 500;
+      let blocksPerHour = 3600*5;
       let oldSharePrice;
       let newSharePrice;
 
       for (let i = 0; i < hours; i++) {
         console.log("loop ", i);
-        if (i == 1) {
-          let balance = new BigNumber(await zk.balanceOf(governance.address));
-          console.log("ZK Balance to transfer:", balance.toFixed());
-          await hre.zksyncEthers.provider.send("evm_mine");
-          await zk.transfer(strategy.target, balance.toFixed());
-          await hre.zksyncEthers.provider.send("evm_mine");
-        }
-        let zkPerSec = new BigNumber(await strategy.zkPerSec());
-        let zkBalance = new BigNumber(await zk.balanceOf(strategy.target));
-        console.log("ZK per second:", zkPerSec.toFixed());
-        console.log("Strategy ZK balance:", zkBalance.toFixed());
+
+        await hre.zksyncEthers.provider.send("evm_mine");
+        await rewardPrePay.connect(governance).updateReward(strategy.target, new BigNumber(i+1).times(1e18).toFixed());
+        await hre.zksyncEthers.provider.send("evm_mine");
 
         oldSharePrice = new BigNumber(await vault.getPricePerFullShare());
         await hre.zksyncEthers.provider.send("evm_mine");
@@ -106,7 +99,7 @@ describe("ZKSync Mainnet SyncSwap wrsETH-ETH", function() {
         console.log("instant APR:", apr*100, "%");
         console.log("instant APY:", (apy-1)*100, "%");
 
-        await Utils.advanceNBlock(blocksPerHour);
+        await Utils.waitTime(blocksPerHour);
       }
       await vault.withdraw(new BigNumber(await vault.balanceOf(farmer1)).toFixed(), { from: farmer1 });
       let farmerNewBalance = new BigNumber(await underlying.balanceOf(farmer1)).minus(farmerOldBalance);

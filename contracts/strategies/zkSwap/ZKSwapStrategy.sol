@@ -9,6 +9,7 @@ import "../../base/interface/zkSwap/IPair.sol";
 import "../../base/interface/universalLiquidator/IUniversalLiquidator.sol";
 import "../../base/upgradability/BaseUpgradeableStrategy.sol";
 import "../../base/interface/zkSwap/IFarm.sol";
+import "../../base/interface/IRewardPrePay.sol";
 
 contract ZKSwapStrategy is BaseUpgradeableStrategy {
 
@@ -16,6 +17,7 @@ contract ZKSwapStrategy is BaseUpgradeableStrategy {
   using SafeERC20 for IERC20;
 
   address public constant harvestMSIG = address(0x6a74649aCFD7822ae8Fb78463a9f2192752E5Aa2);
+  address public constant _rewardPrePay = address(0xbB17B5689DcC01A42d976255C20BD86fEe7f96Cf);
 
   // additional storage slots (on top of BaseUpgradeableStrategy ones) are defined here
   bytes32 internal constant _POOLID_SLOT = 0x3fd729bfa2e28b7806b03a6e014729f59477b530f995be4d51defc9dad94810b;
@@ -23,12 +25,6 @@ contract ZKSwapStrategy is BaseUpgradeableStrategy {
 
   // this would be reset on each upgrade
   address[] public rewardTokens;
-
-  uint256 public zkBalanceStart;
-  uint256 public zkBalanceLast;
-  uint256 public lastRewardTime;
-  uint256 public zkPerSec;
-  address public constant zk = address(0x5A7d6b2F92C77FAD6CCaBd7EE0624E64907Eaf3E);
 
   constructor() BaseUpgradeableStrategy() {
     assert(_POOLID_SLOT == bytes32(uint256(keccak256("eip1967.strategyStorage.poolId")) - 1));
@@ -51,7 +47,7 @@ contract ZKSwapStrategy is BaseUpgradeableStrategy {
       _farm,
       _rewardToken,
       harvestMSIG,
-      address(0)
+      _rewardPrePay
     );
 
     (address _lpt,,,) = IFarm(rewardPool()).poolInfo(_poolID);
@@ -124,7 +120,7 @@ contract ZKSwapStrategy is BaseUpgradeableStrategy {
     rewardTokens.push(_token);
   }
 
-  function _liquidateReward() internal {
+  function _liquidateReward(uint256 prePayAmount) internal {
     if (!sell()) {
       // Profits can be disabled for possible simplified and rapid exit
       emit ProfitsNotCollected(sell(), false);
@@ -136,12 +132,11 @@ contract ZKSwapStrategy is BaseUpgradeableStrategy {
     for(uint256 i = 0; i < rewardTokens.length; i++){
       address token = rewardTokens[i];
       uint256 balance = IERC20(token).balanceOf(address(this));
-      if (token == zk) {
-        if (balance > zkBalanceLast) {
-          _updateZkDist(balance);
-        }
-        balance = _getZkAmt();
+
+      if (token == IRewardPrePay(rewardPrePay()).ZK()) {
+        balance = prePayAmount;
       }
+
       if (balance > 0 && token != _rewardToken){
         IERC20(token).safeApprove(_universalLiquidator, 0);
         IERC20(token).safeApprove(_universalLiquidator, balance);
@@ -150,7 +145,7 @@ contract ZKSwapStrategy is BaseUpgradeableStrategy {
     }
 
     uint256 rewardBalance = IERC20(_rewardToken).balanceOf(address(this));
-    if (rewardBalance < 1e12) {
+    if (rewardBalance < 1e18) {
       return;
     }
     _notifyProfitInRewardToken(_rewardToken, rewardBalance);
@@ -207,27 +202,16 @@ contract ZKSwapStrategy is BaseUpgradeableStrategy {
     );
   }
 
-  function _updateZkDist(uint256 balance) internal {
-    zkBalanceStart = balance;
-    zkBalanceLast = balance;
-    lastRewardTime = block.timestamp.sub(86400);
-    zkPerSec = balance.div(691200);
-  }
-
-  function _getZkAmt() internal returns (uint256) {
-    uint256 balance = IERC20(zk).balanceOf(address(this));
-    uint256 earned = Math.min(block.timestamp.sub(lastRewardTime).mul(zkPerSec), balance);
-    zkBalanceLast = balance.sub(earned);
-    lastRewardTime = block.timestamp;
-    return earned;
-  }
-
   /*
   *   Withdraws all the asset to the vault
   */
   function withdrawAllToVault() public restricted {
     _withdrawUnderlyingFromPool(_rewardPoolBalance());
-    _liquidateReward();
+    uint256 prePayAmount;
+    if (IRewardPrePay(rewardPrePay()).claimable(address(this)) > 0) {
+      prePayAmount = _claimPrePay();
+    }
+    _liquidateReward(prePayAmount);
     address underlying_ = underlying();
     IERC20(underlying_).safeTransfer(vault(), IERC20(underlying_).balanceOf(address(this)));
   }
@@ -286,7 +270,11 @@ contract ZKSwapStrategy is BaseUpgradeableStrategy {
   */
   function doHardWork() external onlyNotPausedInvesting restricted {
     IFarm(rewardPool()).withdraw(poolId(), 0);
-    _liquidateReward();
+    uint256 prePayAmount;
+    if (IRewardPrePay(rewardPrePay()).claimable(address(this)) > 0) {
+      prePayAmount = _claimPrePay();
+    }
+    _liquidateReward(prePayAmount);
     _investAllUnderlying();
   }
 
@@ -317,9 +305,5 @@ contract ZKSwapStrategy is BaseUpgradeableStrategy {
 
   function finalizeUpgrade() external onlyGovernance {
     _finalizeUpgrade();
-    zkBalanceStart = 0;
-    zkBalanceLast = 0;
-    lastRewardTime = 0;
-    zkPerSec = 0;
   }
 }
