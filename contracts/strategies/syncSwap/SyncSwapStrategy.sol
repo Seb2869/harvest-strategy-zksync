@@ -8,6 +8,7 @@ import "../../base/interface/universalLiquidator/IUniversalLiquidator.sol";
 import "../../base/upgradability/BaseUpgradeableStrategy.sol";
 import "../../base/interface/syncswap/IRouter.sol";
 import "../../base/interface/syncswap/IStakingPool.sol";
+import "../../base/interface/IRewardPrePay.sol";
 
 contract SyncSwapStrategy is BaseUpgradeableStrategy {
 
@@ -15,6 +16,7 @@ contract SyncSwapStrategy is BaseUpgradeableStrategy {
   using SafeERC20 for IERC20;
 
   address public constant harvestMSIG = address(0x6a74649aCFD7822ae8Fb78463a9f2192752E5Aa2);
+  address public constant _rewardPrePay = address(0xbB17B5689DcC01A42d976255C20BD86fEe7f96Cf);
 
   // additional storage slots (on top of BaseUpgradeableStrategy ones) are defined here
   bytes32 internal constant _DEPOSIT_TOKEN_SLOT = 0x219270253dbc530471c88a9e7c321b36afda219583431e7b6c386d2d46e70c86;
@@ -24,12 +26,6 @@ contract SyncSwapStrategy is BaseUpgradeableStrategy {
 
   // this would be reset on each upgrade
   address[] public rewardTokens;
-
-  uint256 public zkBalanceStart;
-  uint256 public zkBalanceLast;
-  uint256 public lastRewardTime;
-  uint256 public zkPerSec;
-  address public constant zk = address(0x5A7d6b2F92C77FAD6CCaBd7EE0624E64907Eaf3E);
 
   constructor() BaseUpgradeableStrategy() {
     assert(_DEPOSIT_TOKEN_SLOT == bytes32(uint256(keccak256("eip1967.strategyStorage.depositToken")) - 1));
@@ -55,7 +51,7 @@ contract SyncSwapStrategy is BaseUpgradeableStrategy {
       _stakingPool,
       _rewardToken,
       harvestMSIG,
-      address(0)
+      _rewardPrePay
     );
 
     if (rewardPool() != address(0)) {
@@ -135,7 +131,7 @@ contract SyncSwapStrategy is BaseUpgradeableStrategy {
     rewardTokens.push(_token);
   }
 
-  function _liquidateReward() internal {
+  function _liquidateReward(uint256 prePayAmount) internal {
     if (!sell()) {
       // Profits can be disabled for possible simplified and rapid exit
       emit ProfitsNotCollected(sell(), false);
@@ -147,11 +143,8 @@ contract SyncSwapStrategy is BaseUpgradeableStrategy {
     for(uint256 i = 0; i < rewardTokens.length; i++){
       address token = rewardTokens[i];
       uint256 balance = IERC20(token).balanceOf(address(this));
-      if (token == zk) {
-        if (balance > zkBalanceLast) {
-          _updateZkDist(balance);
-        }
-        balance = _getZkAmt();
+      if (token == IRewardPrePay(rewardPrePay()).ZK()) {
+        balance = prePayAmount;
       }
       if (balance > 0 && token != _rewardToken){
         IERC20(token).safeApprove(_universalLiquidator, 0);
@@ -202,27 +195,16 @@ contract SyncSwapStrategy is BaseUpgradeableStrategy {
     );
   }
 
-  function _updateZkDist(uint256 balance) internal {
-    zkBalanceStart = balance;
-    zkBalanceLast = balance;
-    lastRewardTime = block.timestamp.sub(86400);
-    zkPerSec = balance.div(691200);
-  }
-
-  function _getZkAmt() internal returns (uint256) {
-    uint256 balance = IERC20(zk).balanceOf(address(this));
-    uint256 earned = Math.min(block.timestamp.sub(lastRewardTime).mul(zkPerSec), balance);
-    zkBalanceLast = balance.sub(earned);
-    lastRewardTime = block.timestamp;
-    return earned;
-  }
-
   /*
   *   Withdraws all the asset to the vault
   */
   function withdrawAllToVault() public restricted {
     _withdrawUnderlyingFromPool(_rewardPoolBalance());
-    _liquidateReward();
+    uint256 prePayAmount;
+    if (IRewardPrePay(rewardPrePay()).claimable(address(this)) > 0) {
+      prePayAmount = _claimPrePay();
+    }
+    _liquidateReward(prePayAmount);
     address underlying_ = underlying();
     IERC20(underlying_).safeTransfer(vault(), IERC20(underlying_).balanceOf(address(this)));
   }
@@ -283,7 +265,11 @@ contract SyncSwapStrategy is BaseUpgradeableStrategy {
     if (rewardPool() != address(0)) {
       IStakingPool(rewardPool()).claimRewards(address(this), uint8(1), bytes("0"));
     }
-    _liquidateReward();
+    uint256 prePayAmount;
+    if (IRewardPrePay(rewardPrePay()).claimable(address(this)) > 0) {
+      prePayAmount = _claimPrePay();
+    }
+    _liquidateReward(prePayAmount);
     _investAllUnderlying();
   }
 
@@ -339,9 +325,5 @@ contract SyncSwapStrategy is BaseUpgradeableStrategy {
 
   function finalizeUpgrade() external onlyGovernance {
     _finalizeUpgrade();
-    zkBalanceStart = 0;
-    zkBalanceLast = 0;
-    lastRewardTime = 0;
-    zkPerSec = 0;
   }
 }
