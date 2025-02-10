@@ -119,14 +119,12 @@ contract AaveFoldStrategy is BaseUpgradeableStrategy {
     _accrueFee();
     uint256 fee = pendingFee();
     if (fee > 100) {
-      uint256 balanceIncrease = fee.mul(feeDenominator()).div(totalFeeNumerator());
       _redeem(fee);
       address _underlying = underlying();
-      if (IERC20(_underlying).balanceOf(address(this)) < fee) {
-        balanceIncrease = IERC20(_underlying).balanceOf(address(this)).mul(feeDenominator()).div(totalFeeNumerator());
-      }
+      fee = Math.min(fee, IERC20(_underlying).balanceOf(address(this)));
+      uint256 balanceIncrease = fee.mul(feeDenominator()).div(totalFeeNumerator());
       _notifyProfitInRewardToken(_underlying, balanceIncrease);
-      setUint256(_PENDING_FEE_SLOT, 0);
+      setUint256(_PENDING_FEE_SLOT, pendingFee().sub(fee));
     }
   }
   
@@ -366,12 +364,12 @@ contract AaveFoldStrategy is BaseUpgradeableStrategy {
     uint256 supplied = IAToken(_aToken).balanceOf(address(this));
     // amount we borrowed
     uint256 borrowed = IVariableDebtToken(debtToken()).balanceOf(address(this));
-    uint256 balance = supplied.sub(borrowed).sub(pendingFee().add(1));
+    uint256 balance = supplied.sub(borrowed).sub(pendingFee());
 
     _redeemNoFlash(balance, 0);
     supplied = IAToken(_aToken).balanceOf(address(this));
     if (supplied > pendingFee()) {
-      _redeem(supplied.sub(pendingFee().add(1)));
+      _redeem(supplied.sub(pendingFee()));
     }
   }
 
