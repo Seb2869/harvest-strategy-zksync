@@ -14,10 +14,10 @@ async function main() {
 
   const StrategyImpl = await deployer.loadArtifact(strategyName);
   const impl = await deployer.deploy(StrategyImpl);
-  const verificationId = await hre.run("verify:verify", {address: impl.target});
-  console.log("Verifying source code. Id:", verificationId);
 
   console.log("Implementation deployed at:", impl.target);
+
+  const verificationId = await hre.run("verify:verify", {address: impl.target});
 
   const StrategyProxy = await deployer.loadArtifact('StrategyProxy');
   const proxy = await deployer.deploy(StrategyProxy, [impl.target]);
@@ -28,6 +28,11 @@ async function main() {
   await strategy.initializeStrategy(addresses.Storage, vaultAddr);
 
   console.log("Deployment complete. New strategy deployed and initialised at", proxy.target);
+  const result = {}
+  result.vault = vaultAddr
+  result.strategy = proxy.target
+
+  console.log(result)
 }
 
 main()
