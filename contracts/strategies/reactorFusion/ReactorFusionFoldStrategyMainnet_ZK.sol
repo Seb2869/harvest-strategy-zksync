@@ -14,18 +14,18 @@ contract ReactorFusionFoldStrategyMainnet_ZK is ReactorFusionFoldStrategy {
     address underlying = address(0x5A7d6b2F92C77FAD6CCaBd7EE0624E64907Eaf3E);
     address cToken = address(0x0E392B6b05c112677096920aD938a0752d1451f3);
     address comptroller = address(0x23848c28Af1C3AA7B999fA57e6b6E8599C17F3f2);
-    address rf = address(0x5f7CBcb391d33988DAD74D6Fd683AadDA1123E4D);
+    address weth = address(0x5AEa5775959fBC2557Cc8789bC1bf90A239D9a91);
     ReactorFusionFoldStrategy.initializeBaseStrategy(
       _storage,
       underlying,
       _vault,
       cToken,
       comptroller,
-      rf,
+      weth,
       580,
       599,
       true
     );
-    rewardTokens = [rf];
+    rewardTokens = [underlying];
   }
 }
