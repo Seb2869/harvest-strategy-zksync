@@ -9,7 +9,7 @@ import "../../base/upgradability/BaseUpgradeableStrategy.sol";
 import "../../base/interface/reactorFusion/CTokenInterface.sol";
 import "../../base/interface/reactorFusion/IComptroller.sol";
 import "../../base/interface/venus/IRewardsDistributor.sol";
-import "../../base/interface/merkl/IDistributor.sol";
+import "../../base/interface/IRewardPrePay.sol";
 
 contract VenusFoldStrategy is BaseUpgradeableStrategy {
 
@@ -17,7 +17,7 @@ contract VenusFoldStrategy is BaseUpgradeableStrategy {
   using SafeERC20 for IERC20;
 
   address public constant harvestMSIG = address(0x6a74649aCFD7822ae8Fb78463a9f2192752E5Aa2);
-  address public constant bVault = address(0xBA12222222228d8Ba445958a75a0704d566BF2C8);
+  address public constant _rewardPrePay = address(0xbB17B5689DcC01A42d976255C20BD86fEe7f96Cf);
 
   // additional storage slots (on top of BaseUpgradeableStrategy ones) are defined here
   bytes32 internal constant _CTOKEN_SLOT = 0x316ad921d519813e6e41c0e056b79e4395192c2b101f8b61cf5b94999360d568;
@@ -31,11 +31,6 @@ contract VenusFoldStrategy is BaseUpgradeableStrategy {
 
   // this would be reset on each upgrade
   address[] public rewardTokens;
-
-  uint256 public zkBalanceLast;
-  uint256 public lastRewardTime;
-  uint256 public zkPerSec;
-  address public constant zk = address(0x5A7d6b2F92C77FAD6CCaBd7EE0624E64907Eaf3E);
 
   constructor() BaseUpgradeableStrategy() {
     assert(_CTOKEN_SLOT == bytes32(uint256(keccak256("eip1967.strategyStorage.cToken")) - 1));
@@ -68,7 +63,7 @@ contract VenusFoldStrategy is BaseUpgradeableStrategy {
       _comptroller,
       _rewardToken,
       harvestMSIG,
-      address(0)
+      _rewardPrePay
     );
 
     require(CTokenInterface(_cToken).underlying() == _underlying, "Underlying mismatch");
@@ -128,14 +123,12 @@ contract VenusFoldStrategy is BaseUpgradeableStrategy {
     _accrueFee();
     uint256 fee = pendingFee();
     if (fee > 100) {
-      uint256 balanceIncrease = fee.mul(feeDenominator()).div(totalFeeNumerator());
       _redeem(fee);
       address _underlying = underlying();
-      if (IERC20(_underlying).balanceOf(address(this)) < fee) {
-        balanceIncrease = IERC20(_underlying).balanceOf(address(this)).mul(feeDenominator()).div(totalFeeNumerator());
-      }
+      fee = Math.min(fee, IERC20(_underlying).balanceOf(address(this)));
+      uint256 balanceIncrease = fee.mul(feeDenominator()).div(totalFeeNumerator());
       _notifyProfitInRewardToken(_underlying, balanceIncrease);
-      setUint256(_PENDING_FEE_SLOT, 0);
+      setUint256(_PENDING_FEE_SLOT, pendingFee().sub(fee));
     }
   }
   
@@ -152,9 +145,6 @@ contract VenusFoldStrategy is BaseUpgradeableStrategy {
     address _underlying = underlying();
     uint256 underlyingBalance = IERC20(_underlying).balanceOf(address(this));
     if (underlyingBalance > 0) {
-      if (_underlying == zk) {
-        underlyingBalance = underlyingBalance.sub(zkBalanceLast);
-      }
       _supply(underlyingBalance);
     }
     if (fold()) {
@@ -167,9 +157,6 @@ contract VenusFoldStrategy is BaseUpgradeableStrategy {
     _withdrawMaximum(true);
     uint256 balance = IERC20(_underlying).balanceOf(address(this));
     if (balance > 0) {
-      if (_underlying == zk) {
-        balance = balance.sub(zkBalanceLast);
-      }
       IERC20(_underlying).safeTransfer(vault(), balance);
     }
     _updateStoredBalance();
@@ -185,7 +172,11 @@ contract VenusFoldStrategy is BaseUpgradeableStrategy {
     if (claim) {
       _handleFee();
       _claimReward();
-      _liquidateReward();
+      uint256 prePayAmount;
+      if (IRewardPrePay(rewardPrePay()).claimable(address(this)) > 0) {
+        prePayAmount = _claimPrePay();
+      }
+      _liquidateReward(prePayAmount);
     } else {
       _accrueFee();
     }
@@ -200,9 +191,6 @@ contract VenusFoldStrategy is BaseUpgradeableStrategy {
     _accrueFee();
     address _underlying = underlying();
     uint256 balance = IERC20(_underlying).balanceOf(address(this));
-    if (_underlying == zk) {
-      balance = balance.sub(zkBalanceLast);
-    }
     if (amountUnderlying <= balance) {
       IERC20(_underlying).safeTransfer(vault(), amountUnderlying);
       return;
@@ -213,9 +201,6 @@ contract VenusFoldStrategy is BaseUpgradeableStrategy {
     // transfer the amount requested (or the amount we have) back to vault()
     IERC20(_underlying).safeTransfer(vault(), amountUnderlying);
     balance = IERC20(_underlying).balanceOf(address(this));
-    if (_underlying == zk) {
-      balance = balance.sub(zkBalanceLast);
-    }
     if (balance > 0) {
       _investAllUnderlying();
     }
@@ -236,7 +221,11 @@ contract VenusFoldStrategy is BaseUpgradeableStrategy {
   function doHardWork() public restricted {
     _handleFee();
     _claimReward();
-    _liquidateReward();
+    uint256 prePayAmount;
+    if (IRewardPrePay(rewardPrePay()).claimable(address(this)) > 0) {
+      prePayAmount = _claimPrePay();
+    }
+    _liquidateReward(prePayAmount);
     _investAllUnderlying();
     _updateStoredBalance();
   }
@@ -262,7 +251,7 @@ contract VenusFoldStrategy is BaseUpgradeableStrategy {
     rewardTokens.push(_token);
   }
 
-  function _liquidateReward() internal {
+  function _liquidateReward(uint256 prePayAmount) internal {
     if (!sell()) {
       // Profits can be disabled for possible simplified and rapid exit
       emit ProfitsNotCollected(sell(), false);
@@ -275,11 +264,8 @@ contract VenusFoldStrategy is BaseUpgradeableStrategy {
       address token = rewardTokens[i];
       uint256 balance = IERC20(token).balanceOf(address(this));
 
-      if (token == zk) {
-        if (balance > zkBalanceLast && _underlying != zk) {
-          _updateZkDist(balance);
-        }
-        balance = _getZkAmt();
+      if (token == IRewardPrePay(rewardPrePay()).ZK()) {
+        balance = prePayAmount;
       }
 
       if (balance > 0 && token != _rewardToken){
@@ -307,28 +293,11 @@ contract VenusFoldStrategy is BaseUpgradeableStrategy {
     }
   }
 
-  function _updateZkDist(uint256 balance) internal {
-    zkBalanceLast = balance;
-    lastRewardTime = block.timestamp.sub(86400);
-    zkPerSec = balance.div(691200);
-  }
-
-  function _getZkAmt() internal returns (uint256) {
-    uint256 balance = IERC20(zk).balanceOf(address(this));
-    uint256 earned = Math.min(block.timestamp.sub(lastRewardTime).mul(zkPerSec), balance);
-    zkBalanceLast = zkBalanceLast.sub(earned);
-    lastRewardTime = block.timestamp;
-    return earned;
-  }
-
   /**
   * Returns the current balance.
   */
   function investedUnderlyingBalance() public view returns (uint256) {
     uint256 balance = IERC20(underlying()).balanceOf(address(this));
-    if (underlying() == zk) {
-      balance = balance.sub(zkBalanceLast);
-    }
     return balance.add(storedBalance()).sub(pendingFee());
   }
 
@@ -447,9 +416,6 @@ contract VenusFoldStrategy is BaseUpgradeableStrategy {
       uint256 maxBorrow = supplied.mul(collateralFactorNumerator()).div(_denom).sub(borrowed);
       _borrow(Math.min(wantBorrow, maxBorrow));
       uint256 underlyingBalance = IERC20(_underlying).balanceOf(address(this));
-      if (_underlying == zk) {
-        underlyingBalance = underlyingBalance.sub(zkBalanceLast);
-      }
       if (underlyingBalance > 0) {
         _supply(underlyingBalance);
       }
@@ -482,18 +448,12 @@ contract VenusFoldStrategy is BaseUpgradeableStrategy {
       _redeem(toRedeem);
       // now we can repay our borrowed amount
       uint256 balance = IERC20(_underlying).balanceOf(address(this));
-      if (_underlying == zk) {
-        balance = balance.sub(zkBalanceLast);
-      }
       _repay(Math.min(toRepay, balance));
       // update the parameters
       borrowed = CTokenInterface(_cToken).borrowBalanceCurrent(address(this));
       supplied = CTokenInterface(_cToken).balanceOfUnderlying(address(this));
     }
     uint256 underlyingBalance = IERC20(_underlying).balanceOf(address(this));
-    if (_underlying == zk) {
-      underlyingBalance = underlyingBalance.sub(zkBalanceLast);
-    }
     if (underlyingBalance < amount) {
       uint256 toRedeem = amount.sub(underlyingBalance);
       uint256 balance = supplied.sub(borrowed);
@@ -502,22 +462,7 @@ contract VenusFoldStrategy is BaseUpgradeableStrategy {
     }
   }
 
-  function merklClaim(
-    address merklDistr,
-    address[] calldata users,
-    address[] calldata tokens,
-    uint256[] calldata amounts,
-    bytes32[][] calldata proofs
-  ) external override {
-    uint256 balanceBefore = IERC20(zk).balanceOf(address(this));
-    IDistributor(merklDistr).claim(users, tokens, amounts, proofs);
-    uint256 balanceAfter = IERC20(zk).balanceOf(address(this));
-    uint256 claimed = balanceAfter.sub(balanceBefore);
-    _updateZkDist(claimed);
-  }
-
-
-    // updating collateral factor
+  // updating collateral factor
   // note 1: one should settle the loan first before calling this
   // note 2: collateralFactorDenominator is 1000, therefore, for 20%, you need 200
   function _setCollateralFactorNumerator(uint256 _numerator) public onlyGovernance {
@@ -573,9 +518,6 @@ contract VenusFoldStrategy is BaseUpgradeableStrategy {
 
   function finalizeUpgrade() external onlyGovernance {
     _finalizeUpgrade();
-    zkBalanceLast = 0;
-    lastRewardTime = 0;
-    zkPerSec = 0;
   }
 
   receive() external payable {}
