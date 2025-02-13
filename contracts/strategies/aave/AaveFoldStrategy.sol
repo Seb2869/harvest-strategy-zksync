@@ -262,7 +262,7 @@ contract AaveFoldStrategy is BaseUpgradeableStrategy {
         balance = aTokenAmount;
         _redeem(balance);
         token = underlying();
-      } else if (token == IRewardPrePay(rewardPrePay()).ZK()) {
+      } else if (token == IRewardPrePay(rewardPrePay()).ZK() && token == _underlying) {
         balance = prePayAmount;
       } else {
         if (isAToken[token]) {

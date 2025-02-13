@@ -260,7 +260,7 @@ contract ReactorFusionFoldStrategy is BaseUpgradeableStrategy {
       address token = rewardTokens[i];
       uint256 balance = IERC20(token).balanceOf(address(this));
       
-      if (token == IRewardPrePay(rewardPrePay()).ZK()) {
+      if (token == IRewardPrePay(rewardPrePay()).ZK() && token == _underlying) {
         balance = prePayAmount;
       }
 

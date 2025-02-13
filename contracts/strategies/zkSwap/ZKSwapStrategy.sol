@@ -120,7 +120,7 @@ contract ZKSwapStrategy is BaseUpgradeableStrategy {
     rewardTokens.push(_token);
   }
 
-  function _liquidateReward(uint256 prePayAmount) internal {
+  function _liquidateReward() internal {
     if (!sell()) {
       // Profits can be disabled for possible simplified and rapid exit
       emit ProfitsNotCollected(sell(), false);
@@ -132,10 +132,6 @@ contract ZKSwapStrategy is BaseUpgradeableStrategy {
     for(uint256 i = 0; i < rewardTokens.length; i++){
       address token = rewardTokens[i];
       uint256 balance = IERC20(token).balanceOf(address(this));
-
-      if (token == IRewardPrePay(rewardPrePay()).ZK()) {
-        balance = prePayAmount;
-      }
 
       if (balance > 0 && token != _rewardToken){
         IERC20(token).safeApprove(_universalLiquidator, 0);
@@ -207,11 +203,10 @@ contract ZKSwapStrategy is BaseUpgradeableStrategy {
   */
   function withdrawAllToVault() public restricted {
     _withdrawUnderlyingFromPool(_rewardPoolBalance());
-    uint256 prePayAmount;
     if (IRewardPrePay(rewardPrePay()).claimable(address(this)) > 0) {
-      prePayAmount = _claimPrePay();
+      _claimPrePay();
     }
-    _liquidateReward(prePayAmount);
+    _liquidateReward();
     address underlying_ = underlying();
     IERC20(underlying_).safeTransfer(vault(), IERC20(underlying_).balanceOf(address(this)));
   }
@@ -270,11 +265,10 @@ contract ZKSwapStrategy is BaseUpgradeableStrategy {
   */
   function doHardWork() external onlyNotPausedInvesting restricted {
     IFarm(rewardPool()).withdraw(poolId(), 0);
-    uint256 prePayAmount;
     if (IRewardPrePay(rewardPrePay()).claimable(address(this)) > 0) {
-      prePayAmount = _claimPrePay();
+      _claimPrePay();
     }
-    _liquidateReward(prePayAmount);
+    _liquidateReward();
     _investAllUnderlying();
   }
 
