@@ -13,8 +13,8 @@ abstract contract CTokenInterface {
     function exchangeRateCurrent() external virtual returns (uint);
 
     function getCash() external view virtual returns (uint);
-
     function totalBorrows() external view virtual returns (uint);
+    function totalReserves() external view virtual returns (uint);
 
     function mint(uint mintAmount) external virtual returns (uint);
     function mint() external payable virtual;
@@ -26,4 +26,6 @@ abstract contract CTokenInterface {
 
     function repayBorrow(uint repayAmount) external virtual returns (uint);
     function repayBorrow() external payable virtual;
+
+    function getAccountSnapshot(address account) external view virtual returns (uint, uint, uint, uint);
 }
