@@ -9,7 +9,7 @@ module.exports = {
   "CommunityMsig": "0x6a74649aCFD7822ae8Fb78463a9f2192752E5Aa2",
   "ProfitShare": "0xD8CC993c30Cc70059348bf01E11b1e61497F6335",
   "Reader": "0xb7BB8547D61676A3b69fea17ed517b5eB2e584e8",
-  "RewardPrePay": "0xbB17B5689DcC01A42d976255C20BD86fEe7f96Cf",
+  "RewardPrePay": "0xf131B47A3cDF0b30d007ff3857b03Ca8Cbd1b6Ba",
   "Factory": {
     "VaultFactory": "0xE4A9e95ced43fc65F97E1EC0d14A3e436aBCEF14",
     "PotPoolFactory": "0x37EE957956e48570bb0db43B9c603596af83F9c8",

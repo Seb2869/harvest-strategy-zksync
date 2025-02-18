@@ -1,3 +1,4 @@
+const addresses = require("../test/test-config.js");
 const toUpgrade =
 [
   "0x916F0d5C4C7F2415B7cCC7608dB3de9848fEFC4a",
@@ -25,8 +26,8 @@ async function main() {
   const wallet = await zksyncEthers.getWallet()
   for (const targetAddr of toUpgrade) {
     const contract = await zksyncEthers.getContractAt("IUpgradeableStrategy", targetAddr, wallet);
-    await contract.upgrade();
-    console.log(`Upgraded ${targetAddr}`);
+    await contract.setRewardPrePay(addresses.RewardPrePay);
+    console.log(`Set RewardPrePay to: ${addresses.RewardPrePay}, for strategy: ${targetAddr}`);
   }
 }
 

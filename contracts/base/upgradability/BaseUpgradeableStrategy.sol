@@ -90,6 +90,10 @@ contract BaseUpgradeableStrategy is BaseUpgradeableStrategyStorage {
     IDistributor(merklDistr).toggleOperator(address(this), _operator);
   }
 
+  function setRewardPrePay(address _rewardPrePay) external onlyGovernance {
+    _setRewardPrePay(_rewardPrePay);
+  }
+
   function merklClaim(
     address merklDistr,
     address[] calldata users,

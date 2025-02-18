@@ -6,7 +6,6 @@ import "@openzeppelin/contracts/utils/math/Math.sol";
 import "@openzeppelin/contracts/utils/math/SafeMath.sol";
 import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
-import "@openzeppelin/contracts/security/ReentrancyGuard.sol";
 
 import "./inheritance/Controllable.sol";
 import "./interface/IController.sol";
@@ -16,11 +15,13 @@ import "./interface/aave/IPool.sol";
 import "./interface/aave/IAToken.sol";
 import "./interface/aave/ILendingPoolAddressesProvider.sol";
 import "./interface/aave/IOracle.sol";
+import "./interface/aave/ReserveConfiguration.sol";
 
-contract RewardPrePay is Controllable, ReentrancyGuard {
+contract RewardPrePay is Controllable {
     using SafeERC20 for IERC20;
     using Address for address;
     using SafeMath for uint256;
+    using ReserveConfiguration for DataTypes.ReserveConfigurationMap;
 
     event RewardUpdated(address indexed strategy, uint256 oldValue, uint256 newValue);
     event RewardClaimed(address indexed strategy, uint256 amount);
@@ -100,6 +101,7 @@ contract RewardPrePay is Controllable, ReentrancyGuard {
         
         address _pool = IAToken(aWETH).POOL();
         IPool(_pool).withdraw(WETH, _amount, address(this));
+        IERC20(WETH).safeTransfer(governance(), _amount);
     }
 
     function withdrawAll() external onlyGovernance {
@@ -107,6 +109,7 @@ contract RewardPrePay is Controllable, ReentrancyGuard {
         require(totalDebtBase == 0, "debt must be 0");
         address _pool = IAToken(aWETH).POOL();
         IPool(_pool).withdraw(WETH, IERC20(aWETH).balanceOf(address(this)), address(this));
+        IERC20(WETH).safeTransfer(governance(), IERC20(WETH).balanceOf(address(this)));
     }
 
     function _borrow(uint256 _amount) internal {
@@ -114,7 +117,29 @@ contract RewardPrePay is Controllable, ReentrancyGuard {
         require(newHealth >= MIN_HEALTH_FACTOR, "health factor too low");
 
         address _pool = IAToken(variableDebtZK).POOL();
-        IPool(_pool).borrow(ZK, _amount, 2, 0, address(this));
+        DataTypes.ReserveConfigurationMap memory configuration = IPool(_pool).getConfiguration(ZK);
+        (uint256 borrowCap,) = configuration.getCaps();
+        if (borrowCap == 0) {
+            borrowCap = type(uint256).max;
+        } else {
+            borrowCap = borrowCap.mul(10 ** configuration.getDecimals());
+        }
+        uint256 totalBorrow = IERC20(variableDebtZK).totalSupply();
+        uint256 borrowAvail;
+        if (totalBorrow < borrowCap) {
+            borrowAvail = borrowCap.sub(totalBorrow).sub(2);
+        } else {
+            borrowAvail = 0;
+        }
+        uint256 toBorrow = Math.min(_amount, borrowAvail);
+
+        if (toBorrow > 0) {
+            IPool(_pool).borrow(ZK, toBorrow, 2, 0, address(this));
+        }
+    }
+
+    function borrowZK(uint256 _amount) external onlyGovernance {
+        _borrow(_amount);
     }
 
     function _repay(uint256 _amount) internal {
@@ -124,10 +149,11 @@ contract RewardPrePay is Controllable, ReentrancyGuard {
         IPool(_pool).repay(ZK, _amount, 2, address(this));
     }
 
-    function repayDebt() public {
+    function repayDebt(uint256 _amount) external onlyGovernance {
         uint256 balance = IERC20(ZK).balanceOf(address(this));
         uint256 debt = IERC20(variableDebtZK).balanceOf(address(this));
-        uint256 maxRepay = Math.min(balance, debt);
+        uint256 maxRepay = Math.min(balance, _amount);
+        maxRepay = Math.min(maxRepay, debt);
         if (maxRepay > 0) {
             _repay(maxRepay);
         }
@@ -151,7 +177,7 @@ contract RewardPrePay is Controllable, ReentrancyGuard {
         return rewardEarned[_strategy].sub(rewardClaimed[_strategy]);
     }
 
-    function _claim(address _strategy) internal onlyInitialized(_strategy) nonReentrant {
+    function _claim(address _strategy) internal onlyInitialized(_strategy) {
         uint256 claimableAmount = claimable(_strategy);
         uint256 payableAmount = claimableAmount.mul(100).div(101);
         if (payableAmount > 0) {
@@ -160,10 +186,15 @@ contract RewardPrePay is Controllable, ReentrancyGuard {
                 uint256 toBorrow = payableAmount.sub(balance);
                 _borrow(toBorrow);
             }
+            balance = IERC20(ZK).balanceOf(address(this));
+            if (balance < payableAmount) {
+                payableAmount = balance;
+                claimableAmount = payableAmount.mul(101).div(100);
+            }
             rewardClaimed[_strategy] = rewardClaimed[_strategy].add(claimableAmount);
             IERC20(ZK).safeTransfer(_strategy, payableAmount);
+            emit RewardClaimed(_strategy, claimableAmount);
         }
-        emit RewardClaimed(_strategy, claimableAmount);
     }
 
     function claim() external {
@@ -201,7 +232,7 @@ contract RewardPrePay is Controllable, ReentrancyGuard {
         address[] calldata tokens,
         uint256[] calldata amounts,
         bytes32[][] calldata proofs
-    ) public onlyHardWorkerOrGovernance nonReentrant {
+    ) public onlyHardWorkerOrGovernance {
         updateReward(strategy, newAmount);
         _claim(strategy);
         uint256 balanceBefore = IERC20(ZK).balanceOf(address(this));
@@ -210,7 +241,6 @@ contract RewardPrePay is Controllable, ReentrancyGuard {
         rewardClaimed[strategy] = rewardClaimed[strategy].sub(received);
         rewardEarned[strategy] = rewardEarned[strategy].sub(received);
         emit RewardRepayed(strategy, received);
-        repayDebt();
     }
 
     function batchMerklClaim(

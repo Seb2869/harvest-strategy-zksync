@@ -7,7 +7,7 @@ contract Governable {
 
   Storage public store;
 
-  constructor(address _store) public {
+  constructor(address _store) {
     require(_store != address(0), "new storage shouldn't be empty");
     store = Storage(_store);
   }
